@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Captain Pravin Singh Rajbhar | 3D Interactive Voyage Portfolio</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Font Awesome 6.4.0 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Cinzel & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  
+  <!-- GSAP 3.12.5 (Industry-Standard Animation Engine) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030d14;
+      font-family: 'Inter', sans-serif;
+      color: #f1f5f9;
+    }
+    .font-nautical {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.08em;
+    }
+    #webgl-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 0;
+      outline: none;
+    }
+    /* Glassmorphism Styling */
+    .glass-panel {
+      background: rgba(10, 25, 41, 0.76);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: 0 12px 35px -5px rgba(0, 0, 0, 0.65), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    }
+    .glass-gold {
+      background: rgba(24, 18, 10, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      box-shadow: 0 14px 40px -5px rgba(245, 158, 11, 0.25), inset 0 1px 0 0 rgba(251, 191, 36, 0.2);
+    }
+    /* Radar Sonar Glow */
+    .radar-sweep {
+      background: conic-gradient(from 0deg, rgba(56, 189, 248, 0.4) 0deg, rgba(56, 189, 248, 0) 60deg);
+      border-radius: 50%;
+      animation: radar-spin 4s linear infinite;
+    }
+    @keyframes radar-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    /* Equalizer Soundwave Bars */
+    .eq-bar {
+      width: 3px;
+      border-radius: 9999px;
+      background-color: #38bdf8;
+      animation: eq-bounce 1.2s ease-in-out infinite alternate;
+    }
+    .eq-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+    .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.3s; }
+    .eq-bar:nth-child(3) { height: 8px; animation-delay: 0.2s; }
+    .eq-bar:nth-child(4) { height: 16px; animation-delay: 0.4s; }
+    .eq-bar:nth-child(5) { height: 10px; animation-delay: 0.15s; }
+    @keyframes eq-bounce {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+    /* Subtle Compass Rose Spin */
+    @keyframes slow-rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+      animation: slow-rotate 40s linear infinite;
+    }
+    /* Shimmer Border */
+    @keyframes border-shimmer {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.3); }
+      50% { border-color: rgba(245, 158, 11, 0.8); }
+    }
+    .shimmer-gold {
+      animation: border-shimmer 3s ease-in-out infinite;
+    }
+    /* Custom Scrollbar for Drawers */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.6);
+    }
+  </style>
+</head>
+<body class="w-full h-full relative select-none">
+
+  <!-- 3D WebGL Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- ========================================== -->
+  <!-- TOP NAUTICAL HEADER / RECRUITER HUD        -->
+  <!-- ========================================== -->
+  <header class="fixed top-0 left-0 right-0 z-20 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
+    
+    <!-- Left: Captain Identity Brand & Live Compass -->
+    <div class="flex items-center gap-2.5">
+      <div class="glass-panel px-3.5 py-2 rounded-2xl flex items-center gap-3 pointer-events-auto">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-slate-950 font-bold text-lg shadow-md border border-amber-300">
+          <i class="fa-solid fa-anchor"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-nautical text-sm font-bold tracking-wider text-amber-300">PRAVIN SINGH RAJBHAR</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono">CAPTAIN</span>
+          </div>
+          <p class="text-[11px] text-slate-300 flex items-center gap-1.5 font-medium">
+            <span>MCA Gen AI</span>
+            <span class="text-amber-400">•</span>
+            <span>Alliance Univ, Bangalore</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Live Interactive Compass Dial -->
+      <div id="hud-compass" class="glass-panel w-11 h-11 rounded-2xl hidden sm:flex items-center justify-center relative pointer-events-auto shadow-lg border border-amber-400/30" title="Magnetic Marine Compass">
+        <div id="compass-rose" class="w-8 h-8 rounded-full border border-amber-400/40 relative flex items-center justify-center transition-transform duration-75">
+          <span class="absolute top-0 text-[8px] font-mono font-bold text-amber-400 leading-none">N</span>
+          <span class="absolute bottom-0 text-[8px] font-mono text-slate-400 leading-none">S</span>
+          <span class="absolute left-0 text-[8px] font-mono text-slate-400 leading-none">W</span>
+          <span class="absolute right-0 text-[8px] font-mono text-slate-400 leading-none">E</span>
+          <div class="w-1 h-4 bg-gradient-to-t from-transparent via-cyan-400 to-red-500 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Milestone Archipelago Fast-Travel -->
+    <nav class="hidden lg:flex glass-panel px-3.5 py-1.5 rounded-2xl items-center gap-1 pointer-events-auto shadow-2xl">
+      <button onclick="sailToIsland(0)" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all flex items-center gap-1.5 group">
+        <i class="fa-solid fa-cloud text-cyan-400 group-hover:scale-110 transition-transform"></i>
+        <span>Cloud (BCA)</span>
+      </button>
+      <span class="text-slate-600 text-xs">|</span>
+      <button onclick="sailToIsland(1)" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all flex items-center gap-1.5 group">
+        <i class="fa-solid fa-shield-halved text-emerald-400 group-hover:scale-110 transition-transform"></i>
+        <span>InfoSec & Wholiex</span>
+      </button>
+      <span class="text-slate-600 text-xs">|</span>
+      <button onclick="sailToIsland(2)" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-purple-300 hover:bg-purple-500/10 transition-all flex items-center gap-1.5 group">
+        <i class="fa-solid fa-brain text-purple-400 group-hover:scale-110 transition-transform"></i>
+        <span>Gen AI Core</span>
+      </button>
+      <span class="text-slate-600 text-xs">|</span>
+      <button onclick="sailToIsland(3)" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-200 hover:text-amber-300 hover:bg-amber-500/10 transition-all flex items-center gap-1.5 group">
+        <i class="fa-solid fa-flag-checkered text-amber-400 group-hover:scale-110 transition-transform"></i>
+        <span>Anchorage</span>
+      </button>
+    </nav>
+
+    <!-- Right: Recruiter Actions, Weather & Sound Visualizer -->
+    <div class="flex items-center gap-2 pointer-events-auto">
+      
+      <!-- Day/Night Timer & Weather Selector -->
+      <div class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 text-xs">
+        <i id="weather-icon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
+        <span id="weather-label" class="font-mono text-[11px] text-amber-200 font-bold uppercase hidden sm:inline">DAY</span>
+        <span id="weather-timer" class="font-mono text-[10px] text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded">00:35</span>
+        <div class="flex items-center gap-1 ml-1">
+          <button onclick="setWeather('noon')" class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-amber-500/20 text-amber-300 flex items-center justify-center text-[10px] transition-transform hover:scale-110" title="Noon">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <button onclick="setWeather('sunset')" class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-orange-500/20 text-orange-300 flex items-center justify-center text-[10px] transition-transform hover:scale-110" title="Sunset">
+            <i class="fa-solid fa-cloud-sun"></i>
+          </button>
+          <button onclick="setWeather('night')" class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-[10px] transition-transform hover:scale-110" title="Night">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auto Cruise Toggle -->
+      <button id="autocruise-btn" onclick="toggleAutoCruise()" class="glass-panel px-3 py-2 rounded-2xl text-xs font-bold text-slate-200 hover:text-amber-300 hover:border-amber-400/40 transition-all flex items-center gap-1.5">
+        <i class="fa-solid fa-compass text-amber-400"></i>
+        <span class="hidden sm:inline">Cruise</span>
+      </button>
+
+      <!-- Executive Brief Button -->
+      <button onclick="toggleExecutiveBrief()" class="glass-gold px-3.5 py-2 rounded-2xl text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 shadow-lg shimmer-gold">
+        <i class="fa-solid fa-scroll text-amber-400"></i>
+        <span>Recruiter Brief</span>
+      </button>
+
+      <!-- Audio Atmosphere Toggle with Equalizer Visualizer -->
+      <button onclick="toggleAudio()" id="audio-btn" class="glass-panel px-2.5 h-9 rounded-2xl text-slate-300 hover:text-cyan-300 flex items-center gap-1.5 transition-all" title="Toggle Procedural Oceanic Waves">
+        <span id="audio-eq-bars" class="hidden items-end gap-0.5 h-3">
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+          <span class="eq-bar"></span>
+        </span>
+        <i id="audio-icon" class="fa-solid fa-volume-xmark text-sm"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- FLOATING IN-WORLD 3D BILLBOARD HUD TAGS    -->
+  <!-- ========================================== -->
+  <div id="island-tags-container" class="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+    <!-- Populated dynamically via JS Screen-Projector -->
+  </div>
+
+  <!-- In-World Proximity / Inspection HUD Overlay -->
+  <div id="proximity-hud" class="fixed top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4">
+    <div class="glass-gold px-4 py-2 rounded-2xl flex items-center gap-3 border border-amber-400/50 shadow-2xl">
+      <div class="w-3 h-3 rounded-full bg-amber-400 animate-ping"></div>
+      <div>
+        <span class="text-[10px] font-mono text-amber-300 uppercase tracking-widest font-bold">Holographic Monument in Range</span>
+        <h3 id="proximity-title" class="text-xs font-bold text-white tracking-wide">Approaching Technical Milestone</h3>
+      </div>
+      <button onclick="inspectCurrentIsland()" class="pointer-events-auto ml-2 px-3 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 border border-amber-400/30 text-[11px] font-bold transition-all flex items-center gap-1.5 shadow-md">
+        <i class="fa-solid fa-eye"></i> Focus View
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- BOTTOM NAVIGATION, RADAR & STEERING HUD    -->
+  <!-- ========================================== -->
+  <!-- Tactical Sonar Radar Minimap (Bottom Left) -->
+  <div class="fixed bottom-4 left-4 z-20 pointer-events-auto hidden md:block">
+    <div class="glass-panel p-2.5 rounded-2xl flex flex-col items-center gap-1.5 border border-cyan-500/30 shadow-2xl w-32">
+      <div class="flex items-center justify-between w-full px-1">
+        <span class="text-[9px] font-mono font-bold text-cyan-400 uppercase tracking-wider">SONAR RADAR</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      </div>
+      
+      <!-- Radar Screen Display -->
+      <div class="relative w-24 h-24 rounded-full bg-slate-950/80 border border-cyan-500/40 overflow-hidden flex items-center justify-center">
+        <!-- Concentric Distance Range Rings -->
+        <div class="absolute inset-1 rounded-full border border-cyan-500/20"></div>
+        <div class="absolute inset-3 rounded-full border border-cyan-500/20"></div>
+        <div class="absolute inset-6 rounded-full border border-cyan-500/20"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-full h-[1px] bg-cyan-500/20"></div>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="h-full w-[1px] bg-cyan-500/20"></div>
+        </div>
+
+        <!-- Radar Sweep Conic Layer -->
+        <div class="absolute inset-0 radar-sweep pointer-events-none"></div>
+
+        <!-- Ship Marker (Center) -->
+        <div class="w-2 h-2 rounded-full bg-amber-400 border border-white z-10 shadow-lg"></div>
+
+        <!-- Archipelago Radar Blips -->
+        <div id="radar-blip-0" class="absolute w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8] transition-all duration-300" style="top: 35%; right: 20%;" title="Island 1"></div>
+        <div id="radar-blip-1" class="absolute w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all duration-300" style="top: 55%; left: 20%;" title="Island 2"></div>
+        <div id="radar-blip-2" class="absolute w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7] transition-all duration-300" style="top: 75%; right: 22%;" title="Island 3"></div>
+        <div id="radar-blip-3" class="absolute w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] transition-all duration-300" style="bottom: 12%; left: 46%;" title="Island 4"></div>
+      </div>
+      
+      <span class="text-[9px] font-mono text-slate-400">FAIRWAY DEPTH: 140M</span>
+    </div>
+  </div>
+
+  <footer class="fixed bottom-0 left-0 right-0 z-20 p-3 sm:p-5 flex flex-col items-center pointer-events-none">
+    
+    <!-- Voyage Scrubber Track -->
+    <div class="glass-panel px-4 py-2.5 rounded-2xl w-full max-w-xl pointer-events-auto flex items-center gap-3 shadow-2xl mb-2 border border-slate-700/60">
+      <span class="text-[11px] font-mono text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-ship"></i> VOYAGE
+      </span>
+      
+      <!-- Range Input Bound to Spline Parameter t -->
+      <div class="relative flex-1 flex items-center">
+        <input id="voyage-scrubber" type="range" min="0" max="1000" value="0" 
+               class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none">
+      </div>
+
+      <!-- Progress Badge & Knot Speed Indicator -->
+      <div class="flex items-center gap-2">
+        <span id="voyage-percent" class="text-xs font-mono font-bold text-amber-300 min-w-[36px] text-right">0%</span>
+        <span id="speed-indicator" class="text-[10px] px-2 py-0.5 rounded bg-slate-800/90 text-cyan-300 border border-slate-700 font-mono font-bold">14.2 KTS</span>
+      </div>
+    </div>
+
+    <!-- Steer & Quick Controls Info -->
+    <div class="flex flex-wrap items-center justify-center gap-4 text-[11px] text-slate-400 pointer-events-auto">
+      <span class="hidden sm:flex items-center gap-1.5 bg-slate-900/70 px-3 py-1 rounded-full border border-slate-800">
+        <i class="fa-solid fa-mouse text-cyan-400"></i> Scroll Down to Sail • Drag to Steer Helm • Click Monoliths
+      </span>
+      <button onclick="openCaptainLog()" class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 flex items-center gap-1 transition-all hover:scale-105">
+        <i class="fa-solid fa-book-open"></i> Captain's Logbook
+      </button>
+      <button onclick="runPortfolioTestSuite()" class="text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 transition-all hover:scale-105">
+        <i class="fa-solid fa-flask"></i> Run QA Suite (16 Tests)
+      </button>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL: THE CAPTAIN'S DISPATCH (WELCOME)    -->
+  <!-- ========================================== -->
+  <div id="captain-log-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="captain-log-card" class="glass-gold max-w-xl w-full rounded-3xl p-6 sm:p-8 relative shadow-2xl border border-amber-400/40 text-slate-200 transform scale-95 transition-transform duration-300">
+      
+      <!-- Close Button -->
+      <button onclick="closeCaptainLog()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-900/80 text-amber-300 hover:text-white flex items-center justify-center border border-amber-500/30 transition-transform hover:scale-110">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <!-- Badge & Crest -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center text-amber-300 text-2xl shadow-inner">
+          <i class="fa-solid fa-compass animate-spin-slow"></i>
+        </div>
+        <div>
+          <span class="text-xs font-mono text-amber-400 font-bold uppercase tracking-widest">EXPEDITION DISPATCH • BENGALURU</span>
+          <h2 class="font-nautical text-xl sm:text-2xl font-black text-amber-200">Captain's Welcome Log</h2>
+        </div>
+      </div>
+
+      <!-- Persona Narrative -->
+      <div class="space-y-3 text-sm text-slate-300 leading-relaxed font-normal border-t border-b border-amber-500/20 py-4 my-4">
+        <p>
+          <strong class="text-amber-300">Ahoy, Navigator.</strong> Welcome aboard my flagship. I am 
+          <strong class="text-white">Pravin Singh Rajbhar</strong>—Specialist in <span class="text-purple-300 font-semibold">Generative AI</span> at 
+          <span class="text-cyan-300 font-semibold">Alliance University</span> and Full-Stack Backend Engineer.
+        </p>
+        <p>
+          We are charting a voyage across four technical milestone islands:
+        </p>
+        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono mt-2">
+          <li class="bg-slate-900/60 p-2 rounded-xl border border-cyan-500/20 flex items-center gap-2">
+            <span class="text-cyan-400 font-bold">01.</span> Cloud Genesis (BCA 87.30%)
+          </li>
+          <li class="bg-slate-900/60 p-2 rounded-xl border border-emerald-500/20 flex items-center gap-2">
+            <span class="text-emerald-400 font-bold">02.</span> InfoSec & Wholiex APIs
+          </li>
+          <li class="bg-slate-900/60 p-2 rounded-xl border border-purple-500/20 flex items-center gap-2">
+            <span class="text-purple-400 font-bold">03.</span> Gen AI & F1 Simulation
+          </li>
+          <li class="bg-slate-900/60 p-2 rounded-xl border border-amber-500/20 flex items-center gap-2">
+            <span class="text-amber-400 font-bold">04.</span> Harbor Anchorage & Contact
+          </li>
+        </ul>
+        <p class="text-xs text-slate-400 italic pt-1">
+          Scroll downward to steer forward, click any island monument in the 3D world, or open the "Recruiter Brief" above for an instant resume snapshot.
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-between gap-3 pt-2">
+        <button onclick="toggleExecutiveBrief(); closeCaptainLog();" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all flex items-center gap-1.5 border border-slate-700 hover:scale-105">
+          <i class="fa-solid fa-file-invoice text-amber-400"></i> Executive Brief
+        </button>
+        <button onclick="closeCaptainLog()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/25 transition-all flex items-center gap-2 hover:scale-105">
+          <span>Take The Helm</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: RECRUITER EXECUTIVE BRIEF           -->
+  <!-- ========================================== -->
+  <div id="executive-brief-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="executive-brief-card" class="glass-panel max-w-2xl w-full rounded-3xl p-6 sm:p-8 relative shadow-2xl border border-cyan-500/40 text-slate-200 max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300">
+      
+      <button onclick="toggleExecutiveBrief()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-900/80 text-cyan-300 hover:text-white flex items-center justify-center border border-cyan-500/30 transition-transform hover:scale-110">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-3 mb-5 border-b border-slate-800 pb-4">
+        <div class="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 text-2xl shadow-inner">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+        <div>
+          <span class="text-xs font-mono text-cyan-400 font-bold tracking-wider">CANDIDATE DOSSIER</span>
+          <h2 class="text-2xl font-bold text-white">Pravin Singh Rajbhar</h2>
+          <p class="text-xs text-slate-400">Bengaluru, Karnataka • +91 8989082556 • spravinMCA25@stu.alliance.edu.in</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Education -->
+        <div>
+          <h3 class="font-mono text-cyan-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-graduation-cap"></i> Academic Credentials
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-purple-500/20">
+              <span class="text-[10px] text-purple-400 font-mono font-bold">2025 - PRESENT</span>
+              <h4 class="font-bold text-slate-100 text-sm">Alliance University, Bangalore</h4>
+              <p class="text-slate-300">Master of Computer Applications (MCA) — Generative AI</p>
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-cyan-500/20">
+              <span class="text-[10px] text-cyan-400 font-mono font-bold">2022 - 2025 • 87.30% DISTINCTION</span>
+              <h4 class="font-bold text-slate-100 text-sm">ITM University, Raipur</h4>
+              <p class="text-slate-300">Bachelor of Computer Applications — Cloud Tech & InfoSec</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Experience -->
+        <div>
+          <h3 class="font-mono text-emerald-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-briefcase"></i> Production Experience
+          </h3>
+          <div class="bg-slate-900/80 p-3.5 rounded-xl border border-emerald-500/20 space-y-1.5">
+            <div class="flex justify-between items-start">
+              <div>
+                <h4 class="font-bold text-slate-100 text-sm">Wholiex Enterprise</h4>
+                <p class="text-emerald-300 text-[11px] font-mono">Software Development Backend Intern (Remote, Boston US)</p>
+              </div>
+              <span class="text-[10px] font-mono bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded">Sep 2024 - Dec 2024</span>
+            </div>
+            <ul class="list-disc list-inside text-slate-300 space-y-1 pt-1 text-[11px]">
+              <li>Engineered Django REST APIs for recommendation engines and analytics using PostgreSQL and PostHog.</li>
+              <li>Integrated Firebase push notifications and secure Azure Blob Storage media previews.</li>
+              <li>Authored API test suites using Postman, Swagger, and Django Framework for production deployments.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Key Projects -->
+        <div>
+          <h3 class="font-mono text-amber-400 font-bold uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-code"></i> Highlight Projects
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <h4 class="font-bold text-slate-200">F1 Racing Simulation (RL)</h4>
+              <p class="text-slate-400 text-[11px] mt-1">Python & Reinforcement Learning agent training driving decisions via reward-based dynamic interaction.</p>
+            </div>
+            <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700">
+              <h4 class="font-bold text-slate-200">Marketing AI Platform</h4>
+              <p class="text-slate-400 text-[11px] mt-1">Node.js, MongoDB, JavaScript automated marketing platform generating content, scheduling, and analytics.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-6 pt-4 border-t border-slate-800">
+        <div class="flex items-center gap-2">
+          <a href="https://github.com/pravinSinghh" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs flex items-center gap-1.5 transition-all hover:scale-105">
+            <i class="fa-brands fa-github"></i> GitHub
+          </a>
+          <a href="https://linkedin.com/in/pravin-singh-rajbhar" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-mono text-xs flex items-center gap-1.5 transition-all hover:scale-105">
+            <i class="fa-brands fa-linkedin-in"></i> LinkedIn
+          </a>
+        </div>
+        <a href="mailto:spravinMCA25@stu.alliance.edu.in" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-md shadow-cyan-500/20">
+          <i class="fa-solid fa-paper-plane"></i> Contact Pravin
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MILESTONE DETAIL DRAWER             -->
+  <!-- ========================================== -->
+  <div id="milestone-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="milestone-card" class="glass-panel max-w-xl w-full rounded-3xl p-6 sm:p-7 relative shadow-2xl border border-cyan-400/40 text-slate-200 transform scale-95 transition-transform duration-300">
+      <button onclick="closeModal()" class="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-900/80 text-cyan-300 hover:text-white flex items-center justify-center border border-cyan-500/30 transition-transform hover:scale-110">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      
+      <div id="modal-content" class="space-y-4">
+        <!-- Injected via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: QA INTEGRATION TEST REPORT          -->
+  <!-- ========================================== -->
+  <div id="test-results-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="test-results-card" class="glass-panel max-w-xl w-full rounded-3xl p-6 relative shadow-2xl border border-cyan-400/40 text-slate-200 max-h-[85vh] flex flex-col transform scale-95 transition-transform duration-300">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-vial-circle-check text-cyan-400 text-lg"></i>
+          <h3 class="font-nautical font-bold text-lg text-white">Portfolio QA Diagnostic Runner</h3>
+        </div>
+        <span id="test-summary-badge" class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-slate-800 text-slate-300">Evaluating...</span>
+      </div>
+      <div id="test-output-log" class="my-4 space-y-2 text-xs font-mono overflow-y-auto pr-1 flex-1">
+        <!-- Log results inserted here -->
+      </div>
+      <button onclick="closeTestModal()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all hover:scale-[1.01]">
+        Close Diagnostic Runner
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 3D WEBGL APPLICATION SCRIPT (THREE.JS + GSAP PIPELINE)        -->
+  <!-- ============================================================== -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. DATASETS & MILESTONE DEFINITIONS
+    // -------------------------------------------------------------
+    const MILESTONES = [
+      {
+        id: "island1",
+        t: 0.18,
+        title: "Island 01: Cloud Genesis",
+        subtitle: "ITM University • BCA Cloud Tech & InfoSec (87.30%)",
+        color: "#38bdf8",
+        badge: "BCA 87.30%",
+        skills: ["Cloud Systems", "AWS EC2/S3", "Docker", "Python", "Java", "C/C++", "MySQL"],
+        description: "Foundational mastery in Cloud Technology & Information Security at ITM University Raipur, graduating with an 87.30% distinction. Solid grasp of operating systems, virtualized environments (VMware/VirtualBox), network architecture, and distributed database models."
+      },
+      {
+        id: "island2",
+        t: 0.45,
+        title: "Island 02: InfoSec Bastion & Wholiex",
+        subtitle: "Wholiex Enterprise • Backend Development Intern (Boston, US)",
+        color: "#10b981",
+        badge: "Wholiex Backend",
+        skills: ["Django REST APIs", "PostgreSQL", "PostHog", "Azure Blob Storage", "Firebase", "Swagger"],
+        description: "Served as Software Development Backend Intern at Wholiex Enterprise. Architected resilient Django APIs for recommendation engines and analytics pipelines, integrated secure media previews via Azure Blob Storage, and ran rigorous automated API validation using Postman and Swagger."
+      },
+      {
+        id: "island3",
+        t: 0.72,
+        title: "Island 03: Generative AI Sanctuary",
+        subtitle: "Alliance University • MCA Generative AI & ML Innovations",
+        color: "#a855f7",
+        badge: "MCA Gen AI",
+        skills: ["Generative AI", "Reinforcement Learning", "FastAPI", "Node.js", "MongoDB", "Hack to Crack 2.0"],
+        description: "Deep specialization in Generative AI architectures and Machine Learning at Alliance University Bangalore. Developed an RL-based F1 racing simulation where agents learn optimal trajectories, Marketing-AI automated content systems, and built a healthcare analytics dashboard at the national Hack to Crack 2.0 hackathon."
+      },
+      {
+        id: "island4",
+        t: 0.96,
+        title: "Island 04: The Captain's Anchorage",
+        subtitle: "Bengaluru, Karnataka • Ready for High-Impact Roles",
+        color: "#f59e0b",
+        badge: "Hire Pravin",
+        skills: ["Full Stack AI", "Backend Systems", "FastAPI / Django", "AWS Cloud", "Docker Pipelines"],
+        description: "Final harbor destination. Pravin is actively seeking full-time and high-impact engineering roles in Generative AI, Backend Development, and Cloud Systems. Reach out via email, phone, or LinkedIn to dispatch an offer."
+      }
+    ];
+
+    // -------------------------------------------------------------
+    // 2. THREE.JS GLOBAL STATE & SYSTEM OBJECTS
+    // -------------------------------------------------------------
+    let scene, camera, renderer;
+    let voyageSpline;
+    let waterMesh, waterGeo;
+    let shipGroup, wheelGroup;
+    let islandGroup1, islandGroup2, islandGroup3, islandGroup4;
+    let dirLight, hemiLight;
+
+    // Particle Systems (Ocean Spray, Stars, Bioluminescent Plankton)
+    let bowSprayParticles = null;
+    let starfieldParticles = null;
+    let planktonParticles = null;
+
+    // 3D In-World Hologram Monoliths & Raycasting
+    let holographicMonoliths = [];
+    const raycaster = new THREE.Raycaster();
+    const mouseVector = new THREE.Vector2();
+    let inspectedMonolith = null;
+
+    // Navigation & Interaction State
+    let currentT = 0.0;
+    let targetT = 0.0;
+    let isAutoCruising = false;
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let cameraYaw = 0.0;
+    let cameraPitch = 0.0;
+    let targetYaw = 0.0;
+    let targetPitch = 0.0;
+
+    // Flag pennant geometry
+    let flagMesh;
+
+    // Day/Night Weather Cycle State
+    let currentWeatherMode = 'noon';
+    let weatherTimerSeconds = 35;
+    let weatherTimerInterval = null;
+
+    // Audio Context
+    let audioCtx = null;
+    let audioGain = null;
+    let isAudioPlaying = false;
+
+    // -------------------------------------------------------------
+    // 3. INITIALIZATION PIPELINE
+    // -------------------------------------------------------------
+    function init() {
+      const canvas = document.getElementById('webgl-canvas');
+      if (!canvas) return;
+
+      // Scene
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x7dd3fc);
+      scene.fog = new THREE.FogExp2(0x7dd3fc, 0.0016);
+
+      // Camera: First-Person Helm Eyepoint
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1500);
+      camera.position.set(0, 4.2, 3.2);
+
+      // Renderer
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+
+      // Lights
+      hemiLight = new THREE.HemisphereLight(0xffffff, 0x0284c7, 0.9);
+      scene.add(hemiLight);
+
+      dirLight = new THREE.DirectionalLight(0xfffaed, 1.4);
+      dirLight.position.set(120, 220, 80);
+      scene.add(dirLight);
+
+      // 4. Catmull-Rom Voyage Spline (Guaranteed collision-free deep water fairway channel)
+      voyageSpline = new THREE.CatmullRomCurve3([
+        new THREE.Vector3(0, 0, 0),         // Start: Open Caribbean waters
+        new THREE.Vector3(10, 0, -180),     // Pass Island 1 (Starboard at X: 155, distance: 145)
+        new THREE.Vector3(-10, 0, -420),    // Pass Island 2 (Port at X: -155, distance: 145)
+        new THREE.Vector3(8, 0, -680),      // Pass Island 3 (Starboard at X: 155, distance: 147)
+        new THREE.Vector3(0, 0, -920)       // Anchor before Island 4 (Ahead at Z: -1050, distance: 130)
+      ]);
+
+      // Build 3D Entities
+      createOcean();
+      createShipDeck();
+      createMilestoneIslands();
+      createSkyAtmosphere();
+      createOceanSprayParticles();
+      createStarfield();
+      createBioluminescentPlankton();
+
+      // Setup Events & UI Listeners
+      setupControls();
+      setupInWorldHUD();
+      startWeatherTimer();
+
+      // Render Loop
+      window.addEventListener('resize', onWindowResize);
+      animate();
+
+      // Trigger Welcome Log with smooth entrance
+      setTimeout(() => {
+        openCaptainLog();
+      }, 500);
+    }
+
+    // -------------------------------------------------------------
+    // 4. REUSABLE ASSET FACTORIES (FOLIAGE, PROPS, ARCHITECTURE)
+    // -------------------------------------------------------------
+    const MaterialPalette = {
+      wood: new THREE.MeshStandardMaterial({ color: 0x5c2c16, roughness: 0.65 }),
+      darkWood: new THREE.MeshStandardMaterial({ color: 0x3d1c0e, roughness: 0.7 }),
+      brass: new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.85, roughness: 0.25 }),
+      carriage: new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.7 }),
+      gunMetal: new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.9, roughness: 0.2 }),
+      rope: new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.9 }),
+      barrel: new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 }),
+      lanternGlass: new THREE.MeshBasicMaterial({ color: 0xfef08a }),
+      rock: new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9 }),
+      palmTrunk: new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 }),
+      palmFrond: new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5, side: THREE.DoubleSide }),
+      broadleafFoliage: new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7, flatShading: true }),
+      grass: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6, side: THREE.DoubleSide })
+    };
+
+    const FoliageFactory = {
+      createRock(x, y, z, scale = 5, color = 0x57534e) {
+        const mat = color === 0x57534e ? MaterialPalette.rock : new THREE.MeshStandardMaterial({ color, roughness: 0.9 });
+        const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(scale, 1), mat);
+        rock.position.set(x, y, z);
+        rock.rotation.set(Math.random(), Math.random(), Math.random());
+        return rock;
+      },
+
+      createPalm(x, y, z, scale = 1.0) {
+        const palm = new THREE.Group();
+        palm.position.set(x, y, z);
+        palm.scale.set(scale, scale, scale);
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.45, 6, 8), MaterialPalette.palmTrunk);
+        trunk.position.y = 3;
+        trunk.rotation.z = -0.15;
+        palm.add(trunk);
+
+        for (let i = 0; i < 6; i++) {
+          const frond = new THREE.Mesh(new THREE.ConeGeometry(0.9, 4.5, 4), MaterialPalette.palmFrond);
+          frond.position.set(0, 5.8, 0);
+          frond.rotation.z = 1.1;
+          frond.rotation.y = (i * Math.PI) / 3;
+          palm.add(frond);
+        }
+        return palm;
+      },
+
+      createBroadleafTree(x, y, z, scale = 1.0) {
+        const tree = new THREE.Group();
+        tree.position.set(x, y, z);
+        tree.scale.set(scale, scale, scale);
+
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 5, 8), MaterialPalette.darkWood);
+        trunk.position.y = 2.5;
+        tree.add(trunk);
+
+        const c1 = new THREE.Mesh(new THREE.DodecahedronGeometry(3.2, 1), MaterialPalette.broadleafFoliage);
+        c1.position.set(0, 5.5, 0);
+        tree.add(c1);
+        const c2 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4, 1), MaterialPalette.broadleafFoliage);
+        c2.position.set(1.4, 6.2, 0.8);
+        tree.add(c2);
+        const c3 = new THREE.Mesh(new THREE.DodecahedronGeometry(2.2, 1), MaterialPalette.broadleafFoliage);
+        c3.position.set(-1.2, 5.8, -0.6);
+        tree.add(c3);
+
+        return tree;
+      },
+
+      createGrassTuft(x, y, z) {
+        const tuft = new THREE.Group();
+        tuft.position.set(x, y, z);
+        for (let i = 0; i < 3; i++) {
+          const blade = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 1.6), MaterialPalette.grass);
+          blade.position.y = 0.8;
+          blade.rotation.y = (i * Math.PI) / 3;
+          blade.rotation.x = 0.15;
+          tuft.add(blade);
+        }
+        return tuft;
+      },
+
+      createShoreFoamRing(radius) {
+        const ringGeo = new THREE.RingGeometry(radius - 2.5, radius + 4.5, 36);
+        ringGeo.rotateX(-Math.PI / 2);
+        const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.35,
+          side: THREE.DoubleSide
+        }));
+        ring.position.y = 0.2;
+        return ring;
+      }
+    };
+
+    const Shipyard = {
+      createNavalCannon(x, z, isPortSide = true) {
+        const cannonGroup = new THREE.Group();
+        cannonGroup.position.set(x, 1.85, z);
+
+        const carriage = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.8), MaterialPalette.carriage);
+        cannonGroup.add(carriage);
+
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.3, 2.4, 12), MaterialPalette.gunMetal);
+        barrel.rotation.z = isPortSide ? Math.PI / 2 - 0.08 : -Math.PI / 2 + 0.08;
+        barrel.position.set(isPortSide ? -0.4 : 0.4, 0.35, 0);
+        cannonGroup.add(barrel);
+
+        [-0.6, 0.6].forEach(wz => {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.15, 10), MaterialPalette.darkWood);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(isPortSide ? -0.55 : 0.55, -0.25, wz);
+          cannonGroup.add(wheel);
+        });
+
+        return cannonGroup;
+      },
+
+      createDeckLantern(x, y, z) {
+        const group = new THREE.Group();
+        group.position.set(x, y, z);
+
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.8, 8), MaterialPalette.brass);
+        group.add(post);
+
+        const lantern = new THREE.Mesh(new THREE.DodecahedronGeometry(0.35), MaterialPalette.lanternGlass);
+        lantern.position.y = 0.8;
+        group.add(lantern);
+
+        const light = new THREE.PointLight(0xfbbf24, 0.8, 12);
+        light.position.y = 0.8;
+        group.add(light);
+
+        return group;
+      },
+
+      createRopeCoil(x, y, z) {
+        const rope = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.12, 8, 20), MaterialPalette.rope);
+        rope.rotation.x = Math.PI / 2;
+        rope.position.set(x, y, z);
+        return rope;
+      },
+
+      createBarrel(x, y, z, scale = 1.0) {
+        const b = new THREE.Mesh(new THREE.CylinderGeometry(0.45 * scale, 0.45 * scale, 1.2 * scale, 10), MaterialPalette.barrel);
+        b.position.set(x, y, z);
+        return b;
+      }
+    };
+
+    const IslandFactory = {
+      createBaseLandmass({ sandRadiusTop = 75, sandRadiusBottom = 95, sandHeight = 12, sandColor = 0xfef08a, mountainRadius = 60, mountainHeight = 36, mountainColor = 0x16a34a, foamRadius = 96 }) {
+        const group = new THREE.Group();
+
+        // Shoreline Foam
+        group.add(FoliageFactory.createShoreFoamRing(foamRadius));
+
+        // Sand Shelf
+        const sand = new THREE.Mesh(
+          new THREE.CylinderGeometry(sandRadiusTop, sandRadiusBottom, sandHeight, 16),
+          new THREE.MeshStandardMaterial({ color: sandColor, roughness: 0.9 })
+        );
+        sand.position.y = sandHeight * 0.16;
+        group.add(sand);
+
+        // Mountain / Interior Elevation
+        const mountain = new THREE.Mesh(
+          new THREE.ConeGeometry(mountainRadius, mountainHeight, 12),
+          new THREE.MeshStandardMaterial({ color: mountainColor, roughness: 0.8 })
+        );
+        mountain.position.y = sandHeight + mountainHeight * 0.25;
+        group.add(mountain);
+
+        return group;
+      }
+    };
+
+    // -------------------------------------------------------------
+    // 5. DYNAMIC CARIBBEAN OCEAN
+    // -------------------------------------------------------------
+    function createOcean() {
+      // High-subdivision plane for dynamic wave vertex displacement
+      waterGeo = new THREE.PlaneGeometry(1600, 1600, 128, 128);
+      waterGeo.rotateX(-Math.PI / 2);
+
+      // Store initial baseline positions
+      const pos = waterGeo.attributes.position;
+      waterGeo.userData = { initialY: new Float32Array(pos.count) };
+      for (let i = 0; i < pos.count; i++) {
+        waterGeo.userData.initialY[i] = pos.getY(i);
+      }
+
+      const waterMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        roughness: 0.15,
+        metalness: 0.25,
+        flatShading: true
+      });
+
+      waterMesh = new THREE.Mesh(waterGeo, waterMat);
+      waterMesh.position.y = -0.5;
+      scene.add(waterMesh);
+    }
+
+    function updateOceanWaves(time) {
+      if (!waterGeo) return;
+      const pos = waterGeo.attributes.position;
+      const initialY = waterGeo.userData.initialY;
+
+      for (let i = 0; i < pos.count; i++) {
+        const u = pos.getX(i);
+        const w = pos.getZ(i);
+        // Layered multi-frequency wave formula
+        const wave = Math.sin(u * 0.035 + time * 1.8) * 0.7 +
+                     Math.cos(w * 0.025 + time * 1.3) * 0.8 +
+                     Math.sin((u + w) * 0.015 + time * 0.9) * 0.5;
+        pos.setY(i, initialY[i] + wave);
+      }
+      pos.needsUpdate = true;
+      waterGeo.computeVertexNormals();
+    }
+
+    // -------------------------------------------------------------
+    // 6. SHIP QUARTERDECK & HELM ASSEMBLY
+    // -------------------------------------------------------------
+    function createShipDeck() {
+      shipGroup = new THREE.Group();
+      scene.add(shipGroup);
+
+      // Main Outer Hull
+      const hullLower = new THREE.Mesh(new THREE.BoxGeometry(9.6, 2.2, 22), MaterialPalette.darkWood);
+      hullLower.position.set(0, 0.4, -1);
+      shipGroup.add(hullLower);
+
+      // Upper Hull Bulwarks
+      const hullUpper = new THREE.Mesh(new THREE.BoxGeometry(10.8, 1.6, 20), MaterialPalette.wood);
+      hullUpper.position.set(0, 1.8, -0.5);
+      shipGroup.add(hullUpper);
+
+      // Gold-leaf Waterline Trim Strakes
+      [-5.45, 5.45].forEach(x => {
+        const strake = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.22, 19.5), MaterialPalette.brass);
+        strake.position.set(x, 2.4, -0.5);
+        shipGroup.add(strake);
+      });
+
+      // Sharp Clipper Bow Prow & Bowsprit Spar
+      const bowProw = new THREE.Mesh(new THREE.ConeGeometry(5.2, 9.5, 4), MaterialPalette.darkWood);
+      bowProw.rotation.x = Math.PI / 2;
+      bowProw.rotation.y = Math.PI / 4;
+      bowProw.position.set(0, 1.2, -14.5);
+      shipGroup.add(bowProw);
+
+      const bowsprit = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.32, 11, 8), MaterialPalette.wood);
+      bowsprit.rotation.x = -Math.PI / 3;
+      bowsprit.position.set(0, 3.2, -17.5);
+      shipGroup.add(bowsprit);
+
+      // Main Deck Floor with Planking Grooves
+      const deckMesh = new THREE.Mesh(new THREE.BoxGeometry(10.2, 0.35, 18.5), MaterialPalette.wood);
+      deckMesh.position.set(0, 2.3, -1);
+      shipGroup.add(deckMesh);
+
+      // Elevated Captain's Poop Deck / Quarterdeck (Stern)
+      const raisedDeck = new THREE.Mesh(new THREE.BoxGeometry(9.2, 0.7, 7.8), MaterialPalette.darkWood);
+      raisedDeck.position.set(0, 2.9, 4.2);
+      shipGroup.add(raisedDeck);
+
+      // Turned Balusters along Quarterdeck Taffrail
+      [-4.5, 4.5].forEach(x => {
+        for (let bz = 1.0; bz <= 7.8; bz += 1.4) {
+          const baluster = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.1, 6), MaterialPalette.brass);
+          baluster.position.set(x, 3.75, bz);
+          shipGroup.add(baluster);
+        }
+      });
+
+      // Master 8-Spoke Wooden Wheel
+      wheelGroup = new THREE.Group();
+      wheelGroup.position.set(0, 4.0, 1.2);
+      shipGroup.add(wheelGroup);
+
+      const wheelRim = new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.08, 8, 24), MaterialPalette.wood);
+      wheelGroup.add(wheelRim);
+
+      const wheelHub = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.25, 12), MaterialPalette.brass);
+      wheelHub.rotation.x = Math.PI / 2;
+      wheelGroup.add(wheelHub);
+
+      for (let s = 0; s < 8; s++) {
+        const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.9, 6), MaterialPalette.wood);
+        spoke.rotation.z = (s * Math.PI) / 4;
+        wheelGroup.add(spoke);
+      }
+
+      // Wheel Pedestal Base
+      const binnacle = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.5, 0.6), MaterialPalette.darkWood);
+      binnacle.position.set(0, 3.1, 1.2);
+      shipGroup.add(binnacle);
+
+      // Captain's Sea-Chart Table with Dividers
+      const chartTable = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.9, 1.2), MaterialPalette.wood);
+      chartTable.position.set(1.9, 3.4, 2.5);
+      shipGroup.add(chartTable);
+
+      const mapParchment = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), new THREE.MeshStandardMaterial({ color: 0xfef3c7 }));
+      mapParchment.rotation.x = -Math.PI / 2;
+      mapParchment.position.set(1.9, 3.86, 2.5);
+      shipGroup.add(mapParchment);
+
+      // Port & Starboard Naval Carronades
+      shipGroup.add(Shipyard.createNavalCannon(-4.8, -3.5, true));
+      shipGroup.add(Shipyard.createNavalCannon(4.8, -3.5, false));
+
+      // Deck Sternpost Lanterns with Warm Lights
+      shipGroup.add(Shipyard.createDeckLantern(-4.2, 4.0, 7.5));
+      shipGroup.add(Shipyard.createDeckLantern(4.2, 4.0, 7.5));
+
+      // Coiled Hemp Ropes & Cargo Barrels
+      shipGroup.add(Shipyard.createRopeCoil(-2.6, 2.5, -4.5));
+      shipGroup.add(Shipyard.createRopeCoil(2.6, 2.5, -4.5));
+      shipGroup.add(Shipyard.createBarrel(-3.6, 2.9, 3.2, 1.1));
+      shipGroup.add(Shipyard.createBarrel(-3.6, 2.9, 4.5, 0.95));
+      shipGroup.add(Shipyard.createBarrel(3.6, 2.9, 4.2, 1.05));
+
+      // Main Mast & Jolly Roger Pennant Flag
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 28, 10), MaterialPalette.darkWood);
+      mast.position.set(0, 14, -6.5);
+      shipGroup.add(mast);
+
+      // Dynamic Animated Pennant Flag
+      const flagGeo = new THREE.PlaneGeometry(3.6, 2.0, 16, 8);
+      const flagMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, side: THREE.DoubleSide, roughness: 0.7 });
+      flagMesh = new THREE.Mesh(flagGeo, flagMat);
+      flagMesh.position.set(1.8, 25.5, -6.5);
+      shipGroup.add(flagMesh);
+    }
+
+    // -------------------------------------------------------------
+    // 7. PARTICLES: OCEAN BOW SPRAY, STARS, BIOLUMINESCENCE
+    // -------------------------------------------------------------
+    function createOceanSprayParticles() {
+      const particleCount = 200;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      const velocities = [];
+
+      for (let i = 0; i < particleCount; i++) {
+        positions[i * 3 + 0] = (Math.random() - 0.5) * 4;
+        positions[i * 3 + 1] = Math.random() * 1.5;
+        positions[i * 3 + 2] = -14 - Math.random() * 6;
+
+        velocities.push({
+          x: (Math.random() - 0.5) * 0.1,
+          y: Math.random() * 0.08 + 0.02,
+          z: -(Math.random() * 0.15 + 0.05),
+          life: Math.random() * 1.0
+        });
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.5,
+        transparent: true,
+        opacity: 0.7,
+        blending: THREE.AdditiveBlending
+      });
+
+      bowSprayParticles = new THREE.Points(geometry, material);
+      bowSprayParticles.userData = { velocities: velocities };
+      if (shipGroup) shipGroup.add(bowSprayParticles);
+    }
+
+    function updateOceanSpray(delta) {
+      if (!bowSprayParticles) return;
+      const pos = bowSprayParticles.geometry.attributes.position;
+      const vel = bowSprayParticles.userData.velocities;
+
+      for (let i = 0; i < vel.length; i++) {
+        let y = pos.getY(i) + vel[i].y;
+        let z = pos.getZ(i) + vel[i].z;
+        let x = pos.getX(i) + vel[i].x;
+
+        vel[i].life -= delta * 1.2;
+
+        if (vel[i].life <= 0) {
+          x = (Math.random() - 0.5) * 3;
+          y = 0.2 + Math.random() * 0.5;
+          z = -14 - Math.random() * 2;
+          vel[i].life = 1.0;
+        }
+
+        pos.setXYZ(i, x, y, z);
+      }
+      pos.needsUpdate = true;
+    }
+
+    function createStarfield() {
+      const count = 1200;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const u = (Math.random() - 0.5) * 1600;
+        const v = 80 + Math.random() * 350;
+        const w = (Math.random() - 0.5) * 1600;
+        pos[i * 3 + 0] = u;
+        pos[i * 3 + 1] = v;
+        pos[i * 3 + 2] = w;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0xe0f2fe,
+        size: 1.8,
+        transparent: true,
+        opacity: 0.0
+      });
+
+      starfieldParticles = new THREE.Points(geo, mat);
+      scene.add(starfieldParticles);
+    }
+
+    function createBioluminescentPlankton() {
+      const count = 300;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        pos[i * 3 + 0] = (Math.random() - 0.5) * 400;
+        pos[i * 3 + 1] = 0.1 + Math.random() * 0.6;
+        pos[i * 3 + 2] = -Math.random() * 1100;
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0x38bdf8,
+        size: 2.2,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+
+      planktonParticles = new THREE.Points(geo, mat);
+      scene.add(planktonParticles);
+    }
+
+    // -------------------------------------------------------------
+    // 8. HOLOGRAPHIC CANVAS MONOLITHS & ISLAND GENERATION
+    // -------------------------------------------------------------
+    function generateHologramCanvasTexture(config) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      const themeColor = config.themeColor || '#38bdf8';
+      const accentBg = config.accentBg || 'rgba(56, 189, 248, 0.3)';
+      const bullets = config.bullets || [];
+
+      // Background Gradient
+      const bgGrad = ctx.createLinearGradient(0, 0, 1024, 1024);
+      bgGrad.addColorStop(0, 'rgba(5, 15, 30, 0.95)');
+      bgGrad.addColorStop(1, 'rgba(2, 6, 23, 0.98)');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      // Futuristic Cyber Grid Scanlines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < 1024; y += 32) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(1024, y);
+        ctx.stroke();
+      }
+
+      // Outer Glowing Frame
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = 8;
+      ctx.strokeRect(30, 30, 964, 964);
+
+      // Inner Border
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(45, 45, 934, 934);
+
+      // Corner Tech Accents
+      const bracketSize = 40;
+      ctx.fillStyle = themeColor;
+      [[30, 30], [994 - bracketSize, 30], [30, 994 - bracketSize], [994 - bracketSize, 994 - bracketSize]].forEach(c => {
+        ctx.fillRect(c[0], c[1], bracketSize, 8);
+        ctx.fillRect(c[0], c[1], 8, bracketSize);
+      });
+
+      // Category Pill Badge
+      ctx.fillStyle = accentBg;
+      ctx.fillRect(60, 60, 420, 50);
+      ctx.strokeStyle = themeColor;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(60, 60, 420, 50);
+
+      ctx.fillStyle = themeColor;
+      ctx.font = 'bold 22px "Courier New", monospace';
+      ctx.fillText(`// ${config.badge} //`, 80, 94);
+
+      // Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 50px "Cinzel", serif';
+      ctx.fillText(config.title, 60, 180);
+
+      // Subtitle / Institution
+      ctx.fillStyle = themeColor;
+      ctx.font = '600 28px "Inter", sans-serif';
+      ctx.fillText(config.institution, 60, 240);
+
+      // Grade / Role Badge
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.fillRect(60, 280, 580, 60);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.strokeRect(60, 280, 580, 60);
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 26px "Inter", sans-serif';
+      ctx.fillText(`★  ${config.grade}`, 80, 320);
+
+      // Divider Line
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(60, 410);
+      ctx.lineTo(964, 410);
+      ctx.stroke();
+
+      // Bullet Points
+      ctx.fillStyle = '#f1f5f9';
+      ctx.font = '500 32px "Inter", sans-serif';
+      let currentY = 480;
+      bullets.forEach((b) => {
+        ctx.fillStyle = themeColor;
+        ctx.fillText('◆', 60, currentY);
+        ctx.fillStyle = '#f1f5f9';
+        
+        // Multi-line word wrap
+        const words = b.split(' ');
+        let line = '';
+        words.forEach(w => {
+          const testLine = line + w + ' ';
+          if (ctx.measureText(testLine).width > 840) {
+            ctx.fillText(line, 100, currentY);
+            line = w + ' ';
+            currentY += 44;
+          } else {
+            line = testLine;
+          }
+        });
+        ctx.fillText(line, 100, currentY);
+        currentY += 60;
+      });
+
+      // Bottom Footer CTA
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = 'bold 26px "Courier New", monospace';
+      ctx.fillText('CLICK MONUMENT IN 3D TO INSPECT • EXPEDITION LOG', 60, 960);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.anisotropy = 8;
+      return texture;
+    }
+
+    function create3DHolographicMonolith({ islandIndex, x, y, z, width = 36, height = 36, rotY = 0, config }) {
+      const group = new THREE.Group();
+      group.position.set(x, y, z);
+      group.rotation.y = rotY;
+
+      // Pedestal Base
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0x090d16, metalness: 0.8, roughness: 0.2 });
+      const base = new THREE.Mesh(new THREE.BoxGeometry(width + 6, 4, 8), baseMat);
+      base.position.y = -height / 2 - 2;
+      group.add(base);
+
+      // Twin Obsidian Pillars
+      [-width / 2 - 2, width / 2 + 2].forEach(px => {
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(3, height + 8, 5), baseMat);
+        pillar.position.set(px, 0, 0);
+        group.add(pillar);
+      });
+
+      // Front & Back Holographic Display Screen
+      const texture = generateHologramCanvasTexture(config);
+      const screenMat = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.95
+      });
+      const screen = new THREE.Mesh(new THREE.PlaneGeometry(width, height), screenMat);
+      screen.userData = { isMonolithScreen: true, islandIndex: islandIndex, title: config.title };
+      group.add(screen);
+
+      // Ambient Point Light
+      const light = new THREE.PointLight(parseInt(config.themeColor.replace('#', '0x')), 1.8, 80);
+      light.position.set(0, 0, 8);
+      group.add(light);
+
+      // Register for raycaster clicking & proximity updates
+      holographicMonoliths.push({
+        group: group,
+        screen: screen,
+        islandIndex: islandIndex,
+        title: config.title,
+        worldPos: new THREE.Vector3(x, y, z)
+      });
+
+      return group;
+    }
+
+    function createMilestoneIslands() {
+      // Island 1: Cloud Genesis
+      islandGroup1 = new THREE.Group();
+      islandGroup1.position.set(155, 0, -180);
+      scene.add(islandGroup1);
+
+      islandGroup1.add(IslandFactory.createBaseLandmass({
+        sandRadiusTop: 75, sandRadiusBottom: 95, sandHeight: 12, sandColor: 0xfef08a,
+        mountainRadius: 60, mountainHeight: 36, mountainColor: 0x16a34a, foamRadius: 96
+      }));
+
+      const monolith1 = create3DHolographicMonolith({
+        islandIndex: 0,
+        x: -28, y: 34, z: 24,
+        width: 32, height: 32,
+        rotY: -Math.PI / 4,
+        config: {
+          title: "Cloud Genesis & Foundations",
+          category: "Undergraduate Distinction",
+          institution: "ITM University, Raipur (2022 - 2025)",
+          grade: "87.30% Aggregate Distinction",
+          badge: "ACADEMIC DISTINCTION",
+          themeColor: "#38bdf8",
+          accentBg: "rgba(14, 165, 233, 0.35)",
+          bullets: [
+            "Graduated with 87.30% distinction in Cloud Technology & Information Security.",
+            "Rigorous coursework in AWS Cloud, Docker containerization, and OS virtualization.",
+            "Built distributed database prototypes using PostgreSQL, MySQL, and Python systems.",
+            "Command of Java, C/C++, network architecture protocols, and Linux administration."
+          ]
+        }
+      });
+      islandGroup1.add(monolith1);
+
+      const stepMat = new THREE.MeshStandardMaterial({ color: 0x78716c, roughness: 0.8 });
+      const f1 = new THREE.Mesh(new THREE.BoxGeometry(50, 4, 30), stepMat);
+      f1.position.set(0, 14, 10);
+      islandGroup1.add(f1);
+
+      const serverMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.2 });
+      const ledMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+
+      for (let i = -2; i <= 2; i++) {
+        const rack = new THREE.Mesh(new THREE.BoxGeometry(4.5, 16, 3.5), serverMat);
+        rack.position.set(i * 9, 26, 10);
+        islandGroup1.add(rack);
+
+        const ledStrip = new THREE.Mesh(new THREE.PlaneGeometry(0.4, 13), ledMat);
+        ledStrip.position.set(i * 9, 26, 11.8);
+        islandGroup1.add(ledStrip);
+      }
+
+      const dataRing = new THREE.Mesh(new THREE.TorusGeometry(32, 0.6, 8, 36), ledMat);
+      dataRing.rotation.x = Math.PI / 3;
+      dataRing.position.y = 35;
+      islandGroup1.add(dataRing);
+
+      islandGroup1.add(FoliageFactory.createRock(25, 4, 20, 6, 0x57534e));
+      islandGroup1.add(FoliageFactory.createRock(-30, 4, -15, 8, 0x44403c));
+      islandGroup1.add(FoliageFactory.createPalm(18, 7, 28, 1.25));
+      islandGroup1.add(FoliageFactory.createPalm(-22, 8, 25, 1.15));
+
+      // Island 2: InfoSec Bastion
+      islandGroup2 = new THREE.Group();
+      islandGroup2.position.set(-155, 0, -420);
+      scene.add(islandGroup2);
+
+      islandGroup2.add(IslandFactory.createBaseLandmass({
+        sandRadiusTop: 80, sandRadiusBottom: 105, sandHeight: 14, sandColor: 0xfde047,
+        mountainRadius: 55, mountainHeight: 32, mountainColor: 0x991b1b, foamRadius: 106
+      }));
+
+      const monolith2 = create3DHolographicMonolith({
+        islandIndex: 1,
+        x: 32, y: 36, z: 20,
+        width: 32, height: 32,
+        rotY: Math.PI / 4,
+        config: {
+          title: "Wholiex Enterprise",
+          category: "Backend Development Intern (Boston, US Remote)",
+          institution: "Sep 2024 - Dec 2024 • Production Engineering",
+          grade: "Production Grade Delivery",
+          badge: "SOFTWARE DEVELOPMENT INTERN",
+          themeColor: "#10b981",
+          accentBg: "rgba(16, 185, 129, 0.35)",
+          bullets: [
+            "Architected Django REST APIs powering personalized recommendation feeds.",
+            "Integrated PostgreSQL databases and PostHog user telemetry analytics.",
+            "Engineered Azure Blob Storage integration with secure signed media previews.",
+            "Delivered comprehensive API testing with Postman, Swagger, and Django Framework."
+          ]
+        }
+      });
+      islandGroup2.add(monolith2);
+
+      const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.7 });
+      const fortress = new THREE.Mesh(new THREE.BoxGeometry(42, 16, 28), stoneMat);
+      fortress.position.y = 34;
+      islandGroup2.add(fortress);
+
+      const shieldMat = new THREE.MeshBasicMaterial({ color: 0x10b981, wireframe: true });
+      const shield = new THREE.Mesh(new THREE.IcosahedronGeometry(48, 2), shieldMat);
+      shield.position.y = 42;
+      islandGroup2.userData.shield = shield;
+      islandGroup2.add(shield);
+
+      islandGroup2.add(FoliageFactory.createRock(32, 4, 25, 7, 0x57534e));
+      islandGroup2.add(FoliageFactory.createPalm(26, 8, 36, 1.2));
+
+      // Island 3: Gen AI Sanctuary
+      islandGroup3 = new THREE.Group();
+      islandGroup3.position.set(155, 0, -680);
+      scene.add(islandGroup3);
+
+      islandGroup3.add(IslandFactory.createBaseLandmass({
+        sandRadiusTop: 75, sandRadiusBottom: 100, sandHeight: 14, sandColor: 0xfef08a,
+        mountainRadius: 65, mountainHeight: 42, mountainColor: 0x4c1d95, foamRadius: 102
+      }));
+
+      const monolith3 = create3DHolographicMonolith({
+        islandIndex: 2,
+        x: -30, y: 38, z: 20,
+        width: 32, height: 32,
+        rotY: -Math.PI / 4,
+        config: {
+          title: "Generative AI Sanctuary",
+          category: "Master of Computer Applications",
+          institution: "Alliance University, Bengaluru (2025 - Present)",
+          grade: "Specialization in Generative AI",
+          badge: "ADVANCED AI RESEARCH",
+          themeColor: "#c084fc",
+          accentBg: "rgba(192, 132, 252, 0.35)",
+          bullets: [
+            "F1 Racing Simulation using Python Reinforcement Learning for dynamic racing lines.",
+            "Marketing AI: Automated content scheduling, copywriting & analytics engine.",
+            "Hack to Crack 2.0 Hackathon: Healthcare analytical dashboard architecture.",
+            "High-throughput microservices using FastAPI, PyTorch, Node.js, and MongoDB."
+          ]
+        }
+      });
+      islandGroup3.add(monolith3);
+
+      const crystalMat = new THREE.MeshBasicMaterial({ color: 0xc084fc, wireframe: true });
+      const coreMesh = new THREE.Mesh(new THREE.OctahedronGeometry(12, 0), crystalMat);
+      coreMesh.position.y = 48;
+      islandGroup3.userData.core = coreMesh;
+      islandGroup3.add(coreMesh);
+
+      const neuralRing = new THREE.Mesh(new THREE.TorusGeometry(18, 0.4, 8, 30), new THREE.MeshBasicMaterial({ color: 0xe879f9 }));
+      neuralRing.rotation.x = Math.PI / 4;
+      neuralRing.position.y = 48;
+      islandGroup3.userData.ring = neuralRing;
+      islandGroup3.add(neuralRing);
+
+      islandGroup3.add(FoliageFactory.createRock(28, 5, 24, 7, 0x334155));
+      islandGroup3.add(FoliageFactory.createPalm(22, 7, 34, 1.2));
+
+      // Island 4: Harbor Anchorage
+      islandGroup4 = new THREE.Group();
+      islandGroup4.position.set(0, 0, -1050);
+      scene.add(islandGroup4);
+
+      islandGroup4.add(IslandFactory.createBaseLandmass({
+        sandRadiusTop: 85, sandRadiusBottom: 110, sandHeight: 12, sandColor: 0xfef08a,
+        mountainRadius: 60, mountainHeight: 32, mountainColor: 0x15803d, foamRadius: 112
+      }));
+
+      const monolith4 = create3DHolographicMonolith({
+        islandIndex: 3,
+        x: 0, y: 34, z: 65,
+        width: 32, height: 32,
+        rotY: 0,
+        config: {
+          title: "The Captain's Anchorage",
+          category: "Contact Coordinates & Hiring Dispatch",
+          institution: "Bengaluru, Karnataka • Ready to Deploy",
+          grade: "Immediate Availability",
+          badge: "HIRE PRAVIN SINGH",
+          themeColor: "#f59e0b",
+          accentBg: "rgba(245, 158, 11, 0.35)",
+          bullets: [
+            "Email: spravinMCA25@stu.alliance.edu.in",
+            "Phone: +91 8989082556 (Bengaluru, KA)",
+            "GitHub: github.com/pravinSinghh",
+            "LinkedIn: linkedin.com/in/pravin-singh-rajbhar"
+          ]
+        }
+      });
+      islandGroup4.add(monolith4);
+
+      const lhWhiteMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+      const lhRedMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 });
+
+      const lhBase = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 7.5, 20, 16), lhWhiteMat);
+      lhBase.position.y = 22;
+      islandGroup4.add(lhBase);
+
+      const lhBand = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.8, 6, 16), lhRedMat);
+      lhBand.position.y = 28;
+      islandGroup4.add(lhBand);
+
+      const lhTop = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.8, 14, 16), lhWhiteMat);
+      lhTop.position.y = 38;
+      islandGroup4.add(lhTop);
+
+      const lightBeam = new THREE.Mesh(
+        new THREE.ConeGeometry(24, 85, 16, 1, true),
+        new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.28, side: THREE.DoubleSide })
+      );
+      lightBeam.rotation.x = Math.PI / 2;
+      lightBeam.position.set(0, 44, 42);
+      islandGroup4.userData.beam = lightBeam;
+      islandGroup4.add(lightBeam);
+
+      const pierMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.8 });
+      const pier = new THREE.Mesh(new THREE.BoxGeometry(11, 1.4, 48), pierMat);
+      pier.position.set(0, 3, 40);
+      islandGroup4.add(pier);
+
+      islandGroup4.add(FoliageFactory.createPalm(26, 6, 22, 1.3));
+    }
+
+    // -------------------------------------------------------------
+    // 9. SKY & ATMOSPHERIC CYCLES WITH FLUID GSAP COLOR LERPING
+    // -------------------------------------------------------------
+    function createSkyAtmosphere() {
+      const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
+      for (let i = 0; i < 24; i++) {
+        const cloud = new THREE.Group();
+        const puffCount = 4 + Math.floor(Math.random() * 4);
+        for (let p = 0; p < puffCount; p++) {
+          const puff = new THREE.Mesh(new THREE.DodecahedronGeometry(8 + Math.random() * 8, 1), cloudMat);
+          puff.position.set(p * 8, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 8);
+          cloud.add(puff);
+        }
+        cloud.position.set(
+          (Math.random() - 0.5) * 800,
+          90 + Math.random() * 70,
+          -Math.random() * 1100
+        );
+        scene.add(cloud);
+      }
+    }
+
+    const weatherPresets = {
+      noon: {
+        sky: '#7dd3fc',
+        fog: '#7dd3fc',
+        fogDensity: 0.0016,
+        hemiSky: '#ffffff',
+        hemiGround: '#0284c7',
+        dirColor: '#fffaed',
+        exposure: 1.1,
+        icon: 'fa-sun',
+        label: 'DAY',
+        iconColor: 'text-amber-400',
+        starOpacity: 0.0,
+        planktonOpacity: 0.0
+      },
+      sunset: {
+        sky: '#f97316',
+        fog: '#c2410c',
+        fogDensity: 0.0022,
+        hemiSky: '#fed7aa',
+        hemiGround: '#9a3412',
+        dirColor: '#ffedd5',
+        exposure: 1.25,
+        icon: 'fa-cloud-sun',
+        label: 'SUNSET',
+        iconColor: 'text-orange-400',
+        starOpacity: 0.25,
+        planktonOpacity: 0.2
+      },
+      night: {
+        sky: '#030712',
+        fog: '#020617',
+        fogDensity: 0.0028,
+        hemiSky: '#38bdf8',
+        hemiGround: '#0f172a',
+        dirColor: '#93c5fd',
+        exposure: 0.85,
+        icon: 'fa-moon',
+        label: 'NIGHT',
+        iconColor: 'text-indigo-400',
+        starOpacity: 0.95,
+        planktonOpacity: 0.8
+      }
+    };
+
+    function setWeather(mode) {
+      currentWeatherMode = mode;
+      const preset = weatherPresets[mode] || weatherPresets.noon;
+
+      // GSAP Smooth Cinematic Color & Fog Lerp Transition (No more jarring color snap!)
+      const targetSky = new THREE.Color(preset.sky);
+      const targetFog = new THREE.Color(preset.fog);
+      const targetHemiSky = new THREE.Color(preset.hemiSky);
+      const targetHemiGround = new THREE.Color(preset.hemiGround);
+      const targetDir = new THREE.Color(preset.dirColor);
+
+      if (window.gsap) {
+        gsap.to(scene.background, { r: targetSky.r, g: targetSky.g, b: targetSky.b, duration: 2.2, ease: "power2.out" });
+        gsap.to(scene.fog.color, { r: targetFog.r, g: targetFog.g, b: targetFog.b, duration: 2.2, ease: "power2.out" });
+        gsap.to(scene.fog, { density: preset.fogDensity, duration: 2.2, ease: "power2.out" });
+        gsap.to(hemiLight.color, { r: targetHemiSky.r, g: targetHemiSky.g, b: targetHemiSky.b, duration: 2.2 });
+        gsap.to(hemiLight.groundColor, { r: targetHemiGround.r, g: targetHemiGround.g, b: targetHemiGround.b, duration: 2.2 });
+        gsap.to(dirLight.color, { r: targetDir.r, g: targetDir.g, b: targetDir.b, duration: 2.2 });
+        gsap.to(renderer, { toneMappingExposure: preset.exposure, duration: 2.2 });
+
+        if (starfieldParticles) {
+          gsap.to(starfieldParticles.material, { opacity: preset.starOpacity, duration: 2.2 });
+        }
+        if (planktonParticles) {
+          gsap.to(planktonParticles.material, { opacity: preset.planktonOpacity, duration: 2.2 });
+        }
+      } else {
+        // Fallback
+        scene.background.set(preset.sky);
+        scene.fog.color.set(preset.fog);
+        scene.fog.density = preset.fogDensity;
+        hemiLight.color.set(preset.hemiSky);
+        hemiLight.groundColor.set(preset.hemiGround);
+        dirLight.color.set(preset.dirColor);
+        renderer.toneMappingExposure = preset.exposure;
+      }
+
+      // Update Top HUD Badges
+      const iconEl = document.getElementById('weather-icon');
+      const labelEl = document.getElementById('weather-label');
+      if (iconEl && labelEl) {
+        iconEl.className = `fa-solid ${preset.icon} ${preset.iconColor} text-sm`;
+        labelEl.textContent = preset.label;
+      }
+    }
+
+    function startWeatherTimer() {
+      const timerEl = document.getElementById('weather-timer');
+      const modes = ['noon', 'sunset', 'night'];
+      let modeIdx = 0;
+
+      weatherTimerInterval = setInterval(() => {
+        weatherTimerSeconds--;
+        if (weatherTimerSeconds <= 0) {
+          weatherTimerSeconds = 35;
+          modeIdx = (modeIdx + 1) % modes.length;
+          setWeather(modes[modeIdx]);
+        }
+        if (timerEl) {
+          const s = weatherTimerSeconds < 10 ? `0${weatherTimerSeconds}` : weatherTimerSeconds;
+          timerEl.textContent = `00:${s}`;
+        }
+      }, 1000);
+    }
+
+    // -------------------------------------------------------------
+    // 10. IN-WORLD 3D BILLBOARD HUD TAGS & RADAR BLIPS
+    // -------------------------------------------------------------
+    function setupInWorldHUD() {
+      const container = document.getElementById('island-tags-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      MILESTONES.forEach((m, idx) => {
+        const tag = document.createElement('div');
+        tag.id = `billboard-tag-${idx}`;
+        tag.className = 'absolute pointer-events-auto cursor-pointer transition-transform duration-200 hover:scale-105 select-none';
+        tag.onclick = () => {
+          sailToIsland(idx);
+          openModal(idx);
+        };
+        tag.innerHTML = `
+          <div class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2.5 shadow-2xl border border-[${m.color}]/40 hover:border-[${m.color}]">
+            <span class="w-2.5 h-2.5 rounded-full animate-ping" style="background-color: ${m.color}"></span>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-mono font-bold" style="color: ${m.color}">${m.badge}</span>
+                <span class="text-[10px] text-slate-400">#0${idx + 1}</span>
+              </div>
+              <h4 class="text-xs font-bold text-white tracking-wide">${m.title.split(':')[1] || m.title}</h4>
+            </div>
+            <i class="fa-solid fa-chevron-right text-xs text-slate-400 ml-1"></i>
+          </div>
+        `;
+        container.appendChild(tag);
+      });
+    }
+
+    function updateInWorldHUD() {
+      const islandPositions = [
+        new THREE.Vector3(155, 42, -180),
+        new THREE.Vector3(-155, 45, -420),
+        new THREE.Vector3(155, 48, -680),
+        new THREE.Vector3(0, 42, -1050)
+      ];
+
+      islandPositions.forEach((worldPos, idx) => {
+        const tag = document.getElementById(`billboard-tag-${idx}`);
+        if (!tag) return;
+
+        const projected = worldPos.clone().project(camera);
+        if (projected.z < 1.0) {
+          const x = (projected.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (-(projected.y * 0.5) + 0.5) * window.innerHeight;
+          
+          tag.style.display = 'block';
+          tag.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+
+          const dist = camera.position.distanceTo(worldPos);
+          const opacity = Math.min(1.0, Math.max(0.2, 1.0 - (dist - 120) / 700));
+          tag.style.opacity = opacity.toFixed(2);
+        } else {
+          tag.style.display = 'none';
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 11. NAVIGATION, STEERING, COMPASS & CONTROLS
+    // -------------------------------------------------------------
+    function setupControls() {
+      const scrubber = document.getElementById('voyage-scrubber');
+
+      // Forward Scroll to Advance
+      window.addEventListener('wheel', (e) => {
+        const step = e.deltaY * 0.00035;
+        targetT = Math.min(1.0, Math.max(0.0, targetT + step));
+      }, { passive: true });
+
+      // Scrubber range input
+      if (scrubber) {
+        scrubber.addEventListener('input', (e) => {
+          targetT = parseFloat(e.target.value) / 1000;
+        });
+      }
+
+      // Drag to Steer Helm & Pan View
+      window.addEventListener('mousedown', (e) => {
+        if (e.target.closest('button, input, a, .glass-panel, .glass-gold, #proximity-hud')) return;
+        isDragging = true;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+
+        // 3D Raycasting: Direct clicking on in-world monolith screens
+        mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouseVector, camera);
+
+        const interactiveScreens = holographicMonoliths.map(m => m.screen);
+        const intersects = raycaster.intersectObjects(interactiveScreens);
+        if (intersects.length > 0) {
+          const clicked = intersects[0].object;
+          if (clicked.userData && clicked.userData.isMonolithScreen) {
+            sailToIsland(clicked.userData.islandIndex);
+            openModal(clicked.userData.islandIndex);
+          }
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - previousMousePosition.x;
+        const deltaY = e.clientY - previousMousePosition.y;
+
+        targetYaw -= deltaX * 0.0025;
+        targetPitch -= deltaY * 0.0018;
+        targetPitch = Math.max(-0.35, Math.min(0.45, targetPitch));
+
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      // Touch Events for Mobile / Tablet
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        const deltaX = e.touches[0].clientX - previousMousePosition.x;
+        const deltaY = e.touches[0].clientY - previousMousePosition.y;
+
+        targetYaw -= deltaX * 0.003;
+        targetPitch -= deltaY * 0.002;
+        targetPitch = Math.max(-0.35, Math.min(0.45, targetPitch));
+
+        // Swipe forward / backward to sail
+        targetT = Math.min(1.0, Math.max(0.0, targetT - deltaY * 0.0004));
+
+        previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => { isDragging = false; });
+
+      // Keyboard Controls
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+          targetT = Math.min(1.0, targetT + 0.03);
+        } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+          targetT = Math.max(0.0, targetT - 0.03);
+        } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+          targetYaw += 0.08;
+        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+          targetYaw -= 0.08;
+        } else if (e.key === 'Escape') {
+          closeModal();
+          closeCaptainLog();
+          closeExecutiveBrief();
+          closeTestModal();
+        }
+      });
+    }
+
+    function inspectCurrentIsland() {
+      if (inspectedMonolith !== null) {
+        openModal(inspectedMonolith);
+      }
+    }
+
+    function sailToIsland(idx) {
+      if (MILESTONES[idx]) {
+        targetT = MILESTONES[idx].t;
+      }
+    }
+
+    function toggleAutoCruise() {
+      isAutoCruising = !isAutoCruising;
+      const btn = document.getElementById('autocruise-btn');
+      if (btn) {
+        if (isAutoCruising) {
+          btn.classList.add('bg-amber-500/20', 'border-amber-400');
+          btn.innerHTML = `<i class="fa-solid fa-anchor text-amber-400"></i><span class="hidden sm:inline">Cruising</span>`;
+        } else {
+          btn.classList.remove('bg-amber-500/20', 'border-amber-400');
+          btn.innerHTML = `<i class="fa-solid fa-compass text-amber-400"></i><span class="hidden sm:inline">Cruise</span>`;
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 12. AUDIO AMBIANCE SYNTHESIZER (WEB AUDIO API) & VISUALIZER
+    // -------------------------------------------------------------
+    function toggleAudio() {
+      const btn = document.getElementById('audio-btn');
+      const icon = document.getElementById('audio-icon');
+      const eqBars = document.getElementById('audio-eq-bars');
+
+      if (!audioCtx) {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          
+          // Generate Pink Noise for Ocean Waves
+          const bufferSize = audioCtx.sampleRate * 2;
+          const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const output = noiseBuffer.getChannelData(0);
+          let b0 = 0, b1 = 0, b2 = 0;
+          for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            output[i] = (b0 + b1 + b2) * 0.12;
+          }
+
+          const whiteNoise = audioCtx.createBufferSource();
+          whiteNoise.buffer = noiseBuffer;
+          whiteNoise.loop = true;
+
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(380, audioCtx.currentTime);
+
+          // Wave rhythm LFO
+          const lfo = audioCtx.createOscillator();
+          lfo.frequency.setValueAtTime(0.22, audioCtx.currentTime);
+          const lfoGain = audioCtx.createGain();
+          lfoGain.gain.setValueAtTime(180, audioCtx.currentTime);
+          lfo.connect(lfoGain);
+          lfoGain.connect(filter.frequency);
+          lfo.start();
+
+          audioGain = audioCtx.createGain();
+          audioGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+
+          whiteNoise.connect(filter);
+          filter.connect(audioGain);
+          audioGain.connect(audioCtx.destination);
+          whiteNoise.start();
+
+          isAudioPlaying = true;
+          if (icon) icon.className = 'fa-solid fa-volume-high text-cyan-300 text-sm';
+          if (eqBars) eqBars.classList.replace('hidden', 'flex');
+        } catch (e) {
+          console.warn('AudioContext requires user interaction', e);
+        }
+      } else {
+        if (isAudioPlaying) {
+          audioCtx.suspend();
+          isAudioPlaying = false;
+          if (icon) icon.className = 'fa-solid fa-volume-xmark text-sm';
+          if (eqBars) eqBars.classList.replace('flex', 'hidden');
+        } else {
+          audioCtx.resume();
+          isAudioPlaying = true;
+          if (icon) icon.className = 'fa-solid fa-volume-high text-cyan-300 text-sm';
+          if (eqBars) eqBars.classList.replace('hidden', 'flex');
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 13. UI MODAL HANDLERS WITH FLUID GSAP SPRING CHOREOGRAPHY
+    // -------------------------------------------------------------
+    function openModalWithGSAP(modalId, cardId) {
+      const modal = document.getElementById(modalId);
+      const card = document.getElementById(cardId);
+      if (!modal || !card) return;
+
+      modal.classList.remove('pointer-events-none');
+      if (window.gsap) {
+        gsap.to(modal, { opacity: 1, duration: 0.35, ease: "power2.out" });
+        gsap.fromTo(card, 
+          { scale: 0.92, y: 15 }, 
+          { scale: 1.0, y: 0, duration: 0.45, ease: "back.out(1.5)" }
+        );
+      } else {
+        modal.classList.remove('opacity-0');
+        modal.classList.add('opacity-100');
+        card.classList.remove('scale-95');
+        card.classList.add('scale-100');
+      }
+    }
+
+    function closeModalWithGSAP(modalId, cardId) {
+      const modal = document.getElementById(modalId);
+      const card = document.getElementById(cardId);
+      if (!modal || !card) return;
+
+      if (window.gsap) {
+        gsap.to(card, { scale: 0.94, y: 10, duration: 0.25, ease: "power2.in" });
+        gsap.to(modal, { 
+          opacity: 0, 
+          duration: 0.25, 
+          ease: "power2.in", 
+          onComplete: () => {
+            modal.classList.add('pointer-events-none');
+          }
+        });
+      } else {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        modal.classList.remove('opacity-100');
+        card.classList.add('scale-95');
+        card.classList.remove('scale-100');
+      }
+    }
+
+    function openModal(idx) {
+      const data = MILESTONES[idx];
+      if (!data) return;
+
+      const container = document.getElementById('modal-content');
+      container.innerHTML = `
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-3 h-3 rounded-full" style="background-color: ${data.color}"></span>
+          <span class="text-xs font-mono font-bold uppercase tracking-wider" style="color: ${data.color}">${data.badge}</span>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-bold text-white">${data.title}</h2>
+        <p class="text-xs text-amber-300 font-mono">${data.subtitle}</p>
+        <p class="text-sm text-slate-300 leading-relaxed pt-2">${data.description}</p>
+        <div>
+          <h4 class="text-xs font-mono text-slate-400 font-bold uppercase mb-2">Technical Competencies</h4>
+          <div class="flex flex-wrap gap-1.5">
+            ${data.skills.map(s => `<span class="px-2.5 py-1 rounded-lg bg-slate-900/90 text-[11px] font-mono text-cyan-300 border border-slate-700">${s}</span>`).join('')}
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+          <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all hover:scale-105">
+            Close Log
+          </button>
+        </div>
+      `;
+      openModalWithGSAP('milestone-modal', 'milestone-card');
+    }
+
+    function closeModal() {
+      closeModalWithGSAP('milestone-modal', 'milestone-card');
+    }
+
+    function openCaptainLog() {
+      openModalWithGSAP('captain-log-modal', 'captain-log-card');
+    }
+
+    function closeCaptainLog() {
+      closeModalWithGSAP('captain-log-modal', 'captain-log-card');
+    }
+
+    function toggleExecutiveBrief() {
+      const modal = document.getElementById('executive-brief-modal');
+      if (modal.classList.contains('pointer-events-none')) {
+        openModalWithGSAP('executive-brief-modal', 'executive-brief-card');
+      } else {
+        closeModalWithGSAP('executive-brief-modal', 'executive-brief-card');
+      }
+    }
+
+    function closeExecutiveBrief() {
+      closeModalWithGSAP('executive-brief-modal', 'executive-brief-card');
+    }
+
+    // -------------------------------------------------------------
+    // 14. EXPANDED 16-POINT AUTOMATED QA INTEGRATION TEST SUITE
+    // -------------------------------------------------------------
+    function closeTestModal() {
+      closeModalWithGSAP('test-results-modal', 'test-results-card');
+    }
+
+    function runPortfolioTestSuite() {
+      const logContainer = document.getElementById('test-output-log');
+      const summaryBadge = document.getElementById('test-summary-badge');
+      if (!logContainer || !summaryBadge) return;
+
+      openModalWithGSAP('test-results-modal', 'test-results-card');
+      logContainer.innerHTML = '';
+      summaryBadge.textContent = 'Running 16 Tests...';
+      summaryBadge.className = 'px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+
+      const tests = [
+        { name: "WebGL 2.0 / 1.0 Context Active", fn: () => renderer && renderer.getContext() },
+        { name: "Three.js Scene Graph Mounted", fn: () => scene && scene.children.length > 5 },
+        { name: "GSAP Animation Engine Loaded (3.12+)", fn: () => Boolean(window.gsap && window.gsap.version) },
+        { name: "Camera Rigged at Eye-Level", fn: () => camera && camera.position.y > 3.0 },
+        { name: "Catmull-Rom Spline Anchor Points", fn: () => voyageSpline && voyageSpline.points.length === 5 },
+        { name: "Ship Group Buoyant on Deck", fn: () => shipGroup && shipGroup.position.y >= -1.0 },
+        { name: "Rotatable Ship's Wheel Assembled", fn: () => wheelGroup && wheelGroup.children.length >= 10 },
+        { name: "Ocean Bow Spray Particles Mounted", fn: () => bowSprayParticles && bowSprayParticles.userData.velocities.length > 50 },
+        { name: "Twinkling Starfield Active", fn: () => starfieldParticles && starfieldParticles.geometry.attributes.position.count >= 1000 },
+        { name: "Dynamic Caribbean Ocean Mesh Subdivided", fn: () => waterGeo && waterGeo.attributes.position.count > 10000 },
+        { name: "Island 1: Cloud Genesis Initialized", fn: () => islandGroup1 && islandGroup1.children.length > 4 },
+        { name: "Island 2: InfoSec Bastion & Shield", fn: () => islandGroup2 && islandGroup2.userData.shield },
+        { name: "Island 3: Gen AI Neural Core", fn: () => islandGroup3 && islandGroup3.userData.core },
+        { name: "Island 4: Harbor Lighthouse Beacon", fn: () => islandGroup4 && islandGroup4.userData.beam },
+        { name: "Weather Presets (Noon, Sunset, Night)", fn: () => weatherPresets && weatherPresets.noon && weatherPresets.night },
+        { name: "Credential Integrity (BCA 87.30% & MCA Gen AI)", fn: () => MILESTONES[0].badge.includes('87.30%') && MILESTONES[2].badge.includes('Gen AI') }
+      ];
+
+      let passed = 0;
+      tests.forEach((t, i) => {
+        let ok = false;
+        try {
+          ok = Boolean(t.fn());
+        } catch (e) {
+          ok = false;
+        }
+
+        if (ok) passed++;
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded bg-slate-900/60 border border-slate-800';
+        row.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="text-slate-500 font-mono">${i < 9 ? '0' + (i + 1) : (i + 1)}.</span>
+            <span class="text-slate-200">${t.name}</span>
+          </div>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold ${ok ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">
+            ${ok ? 'PASS' : 'FAIL'}
+          </span>
+        `;
+        logContainer.appendChild(row);
+      });
+
+      if (passed === tests.length) {
+        summaryBadge.textContent = `${passed}/${tests.length} ALL PASSED`;
+        summaryBadge.className = 'px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+      } else {
+        summaryBadge.textContent = `${passed}/${tests.length} PASSED`;
+        summaryBadge.className = 'px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-red-500/20 text-red-300 border border-red-500/30';
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 15. ANIMATION RENDER LOOP & FRAME LOGIC
+    // -------------------------------------------------------------
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+      const time = clock.getElapsedTime();
+
+      // Auto Cruise increment
+      if (isAutoCruising) {
+        targetT += delta * 0.025;
+        if (targetT > 1.0) targetT = 0.0;
+      }
+
+      // Smooth interpolation of voyage progress
+      currentT += (targetT - currentT) * 0.06;
+
+      // Update Scrubber & Percentage Text
+      const scrubber = document.getElementById('voyage-scrubber');
+      const percentEl = document.getElementById('voyage-percent');
+      const speedEl = document.getElementById('speed-indicator');
+      if (scrubber && !isDragging) scrubber.value = Math.round(currentT * 1000);
+      if (percentEl) percentEl.textContent = `${Math.round(currentT * 100)}%`;
+      if (speedEl) {
+        const knotBase = isAutoCruising ? 16.4 : (Math.abs(targetT - currentT) > 0.005 ? 18.2 : 13.5);
+        const knotFluct = Math.sin(time * 3.0) * 0.4;
+        speedEl.textContent = `${(knotBase + knotFluct).toFixed(1)} KTS`;
+      }
+
+      // Update Ocean Waves
+      updateOceanWaves(time);
+
+      // Update Bow Spray Particles
+      updateOceanSpray(delta);
+
+      // Ship Motion Along Catmull-Rom Spline
+      if (voyageSpline && shipGroup) {
+        const point = voyageSpline.getPointAt(currentT);
+        const tangent = voyageSpline.getTangentAt(currentT).normalize();
+
+        shipGroup.position.copy(point);
+
+        // Buoyant Heave & Sea Sway
+        const heave = Math.sin(time * 2.0) * 0.25;
+        const pitch = Math.cos(time * 1.6) * 0.025;
+        const roll = Math.sin(time * 1.4) * 0.035;
+
+        shipGroup.position.y = point.y + heave;
+
+        // Align ship with forward heading
+        const targetLook = point.clone().add(tangent);
+        shipGroup.lookAt(targetLook);
+        shipGroup.rotation.x += pitch;
+        shipGroup.rotation.z += roll;
+
+        // Rotate Wheel with Steering & Sway
+        if (wheelGroup) {
+          wheelGroup.rotation.z = cameraYaw * 1.5 + Math.sin(time * 1.5) * 0.15;
+        }
+
+        // Live Compass Dial Sync
+        const compassRose = document.getElementById('compass-rose');
+        if (compassRose) {
+          const totalAngle = (shipGroup.rotation.y + cameraYaw) * (180 / Math.PI);
+          compassRose.style.transform = `rotate(${-totalAngle}deg)`;
+        }
+
+        // Camera locked directly to helm eyepoint
+        camera.position.copy(shipGroup.position);
+        camera.position.y += 4.9;
+        camera.position.z += 3.6;
+
+        // Apply mouse-look steering
+        const forwardVector = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraYaw);
+        forwardVector.y = cameraPitch;
+        camera.lookAt(camera.position.clone().add(forwardVector));
+      }
+
+      // Animate Island Landmarks
+      if (islandGroup2 && islandGroup2.userData.shield) {
+        islandGroup2.userData.shield.rotation.y = time * 0.3;
+        islandGroup2.userData.shield.rotation.x = Math.sin(time * 0.4) * 0.1;
+      }
+      if (islandGroup3 && islandGroup3.userData.core) {
+        islandGroup3.userData.core.rotation.y = time * 0.8;
+        islandGroup3.userData.core.rotation.z = time * 0.5;
+        islandGroup3.userData.core.position.y = 48 + Math.sin(time * 1.8) * 2.5;
+      }
+      if (islandGroup3 && islandGroup3.userData.ring) {
+        islandGroup3.userData.ring.rotation.z = -time * 0.6;
+      }
+      if (islandGroup4 && islandGroup4.userData.beam) {
+        islandGroup4.userData.beam.rotation.y = time * 1.2;
+      }
+
+      // Animate Mast Pennant Flag with wind flutter
+      if (flagMesh) {
+        const flagPos = flagMesh.geometry.attributes.position;
+        for (let i = 0; i < flagPos.count; i++) {
+          const u = flagPos.getX(i);
+          const waveZ = Math.sin(u * 2.5 - time * 8) * (u * 0.18);
+          flagPos.setZ(i, waveZ);
+        }
+        flagPos.needsUpdate = true;
+      }
+
+      // Smooth camera yaw/pitch damping
+      cameraYaw += (targetYaw - cameraYaw) * 0.08;
+      cameraPitch += (targetPitch - cameraPitch) * 0.08;
+
+      // Check proximity to 3D Hologram Monoliths & trigger HUD/Glance
+      let closestDist = Infinity;
+      let activeNearMonolith = null;
+
+      holographicMonoliths.forEach((m) => {
+        const worldPos = new THREE.Vector3();
+        m.screen.getWorldPosition(worldPos);
+        const dist = camera.position.distanceTo(worldPos);
+
+        // Gentle floating pulsation for in-world screen
+        m.screen.position.y = Math.sin(time * 2.0 + m.islandIndex) * 0.8;
+
+        if (dist < 260 && dist < closestDist) {
+          closestDist = dist;
+          activeNearMonolith = m;
+        }
+      });
+
+      const proxHUD = document.getElementById('proximity-hud');
+      const proxTitle = document.getElementById('proximity-title');
+
+      if (activeNearMonolith && proxHUD && proxTitle) {
+        inspectedMonolith = activeNearMonolith.islandIndex;
+        proxTitle.textContent = `${activeNearMonolith.title} [In 3D Range]`;
+        proxHUD.classList.remove('opacity-0', '-translate-y-4');
+        proxHUD.classList.add('opacity-100', 'translate-y-0');
+
+        // Contextual glance towards the monument
+        if (!isDragging) {
+          const toTarget = activeNearMonolith.worldPos.clone().sub(camera.position);
+          const desiredAngle = Math.atan2(-toTarget.x, -toTarget.z);
+          targetYaw += (desiredAngle * 0.35 - targetYaw) * 0.03;
+        }
+      } else if (proxHUD) {
+        inspectedMonolith = null;
+        proxHUD.classList.add('opacity-0', '-translate-y-4');
+        proxHUD.classList.remove('opacity-100', 'translate-y-0');
+        if (!isDragging) {
+          targetYaw += (0 - targetYaw) * 0.02;
+        }
+      }
+
+      // Update in-world 3D billboard tags
+      updateInWorldHUD();
+
+      // Render
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // -------------------------------------------------------------
+    // 16. EXPOSE FUNCTIONS TO WINDOW & AUTO-START
+    // -------------------------------------------------------------
+    window.sailToIsland = sailToIsland;
+    window.toggleAutoCruise = toggleAutoCruise;
+    window.setWeather = setWeather;
+    window.toggleAudio = toggleAudio;
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.openCaptainLog = openCaptainLog;
+    window.closeCaptainLog = closeCaptainLog;
+    window.toggleExecutiveBrief = toggleExecutiveBrief;
+    window.closeExecutiveBrief = closeExecutiveBrief;
+    window.runPortfolioTestSuite = runPortfolioTestSuite;
+    window.closeTestModal = closeTestModal;
+    window.inspectCurrentIsland = inspectCurrentIsland;
+
+    // Launch Three.js when window loads
+    window.addEventListener('load', () => {
+      init();
+    });
+  </script>
+</body>
+</html>
