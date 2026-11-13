@@ -131,6 +131,44 @@
   <canvas id="webgl-canvas"></canvas>
 
   <!-- ========================================== -->
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER      -->
+  <!-- ========================================== -->
+  <div id="toast-notification" class="fixed top-20 right-6 z-50 glass-gold px-4 py-2.5 rounded-2xl flex items-center gap-3 border border-amber-400/50 shadow-2xl opacity-0 translate-y-2 pointer-events-none transition-all duration-300">
+    <div id="toast-icon-wrap" class="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-300 text-sm">
+      <i id="toast-icon" class="fa-solid fa-circle-check"></i>
+    </div>
+    <span id="toast-msg" class="text-xs font-semibold text-white">Action successful</span>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SPYGLASS / TELESCOPE VIEWFINDER OVERLAY   -->
+  <!-- ========================================== -->
+  <div id="spyglass-overlay" class="fixed inset-0 pointer-events-none z-30 opacity-0 transition-opacity duration-300 flex items-center justify-center">
+    <div class="relative w-[85vmin] h-[85vmin] rounded-full border-[18px] border-amber-900/90 shadow-[0_0_0_9999px_rgba(2,6,23,0.85)] flex items-center justify-center overflow-hidden">
+      <!-- Brass reticle & crosshair -->
+      <div class="absolute inset-0 border-2 border-amber-400/40 rounded-full"></div>
+      <div class="absolute inset-6 border border-amber-400/20 rounded-full"></div>
+      <div class="absolute w-full h-[1px] bg-amber-400/30"></div>
+      <div class="absolute h-full w-[1px] bg-amber-400/30"></div>
+      
+      <!-- Center optical reticle -->
+      <div class="w-16 h-16 rounded-full border border-amber-400/50 flex items-center justify-center">
+        <div class="w-2 h-2 rounded-full bg-amber-400/80"></div>
+      </div>
+
+      <!-- Spyglass HUD info -->
+      <div class="absolute top-6 flex items-center gap-2">
+        <i class="fa-solid fa-eye text-amber-400 text-xs"></i>
+        <span class="text-[10px] font-mono text-amber-300 tracking-widest uppercase font-bold">CAPTAIN'S SPYGLASS • 2.5X OPTICAL</span>
+      </div>
+      <div class="absolute bottom-6 flex items-center gap-3 font-mono text-[10px]">
+        <span id="spyglass-bearing" class="text-cyan-300 bg-slate-900/80 px-2 py-0.5 rounded border border-cyan-500/30">HEADING: 000° N</span>
+        <span class="text-amber-400 bg-slate-900/80 px-2 py-0.5 rounded border border-amber-500/30">PRESS [T] TO EXIT</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
   <!-- TOP NAUTICAL HEADER / RECRUITER HUD        -->
   <!-- ========================================== -->
   <header class="fixed top-0 left-0 right-0 z-20 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
@@ -154,15 +192,16 @@
         </div>
       </div>
 
-      <!-- Live Interactive Compass Dial -->
-      <div id="hud-compass" class="glass-panel w-11 h-11 rounded-2xl hidden sm:flex items-center justify-center relative pointer-events-auto shadow-lg border border-amber-400/30" title="Magnetic Marine Compass">
-        <div id="compass-rose" class="w-8 h-8 rounded-full border border-amber-400/40 relative flex items-center justify-center transition-transform duration-75">
-          <span class="absolute top-0 text-[8px] font-mono font-bold text-amber-400 leading-none">N</span>
-          <span class="absolute bottom-0 text-[8px] font-mono text-slate-400 leading-none">S</span>
-          <span class="absolute left-0 text-[8px] font-mono text-slate-400 leading-none">W</span>
-          <span class="absolute right-0 text-[8px] font-mono text-slate-400 leading-none">E</span>
-          <div class="w-1 h-4 bg-gradient-to-t from-transparent via-cyan-400 to-red-500 rounded-full"></div>
+      <!-- Live Interactive Compass Dial with Digital Heading Readout -->
+      <div onclick="resetHeading()" id="hud-compass" class="glass-panel px-2.5 py-1.5 rounded-2xl hidden sm:flex items-center gap-2 pointer-events-auto shadow-lg border border-amber-400/30 cursor-pointer hover:border-amber-400/70 transition-all" title="Click to Reset Camera Heading Forward">
+        <div id="compass-rose" class="w-7 h-7 rounded-full border border-amber-400/40 relative flex items-center justify-center transition-transform duration-75">
+          <span class="absolute top-0 text-[7px] font-mono font-bold text-amber-400 leading-none">N</span>
+          <span class="absolute bottom-0 text-[7px] font-mono text-slate-400 leading-none">S</span>
+          <span class="absolute left-0 text-[7px] font-mono text-slate-400 leading-none">W</span>
+          <span class="absolute right-0 text-[7px] font-mono text-slate-400 leading-none">E</span>
+          <div class="w-0.5 h-3.5 bg-gradient-to-t from-transparent via-cyan-400 to-red-500 rounded-full"></div>
         </div>
+        <span id="compass-bearing" class="font-mono text-[10px] font-bold text-amber-300 min-w-[42px]">000° N</span>
       </div>
     </div>
 
@@ -189,9 +228,14 @@
       </button>
     </nav>
 
-    <!-- Right: Recruiter Actions, Weather & Sound Visualizer -->
+    <!-- Right: Recruiter Actions, Spyglass, Weather & Audio Visualizer -->
     <div class="flex items-center gap-2 pointer-events-auto">
       
+      <!-- Spyglass Mode Button -->
+      <button id="spyglass-btn" onclick="toggleSpyglass()" class="glass-panel w-9 h-9 rounded-2xl text-slate-300 hover:text-amber-300 flex items-center justify-center transition-all hover:scale-105" title="Toggle Captain's Spyglass (Key: T)">
+        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+      </button>
+
       <!-- Day/Night Timer & Weather Selector -->
       <div class="glass-panel px-3 py-2 rounded-2xl flex items-center gap-2 text-xs">
         <i id="weather-icon" class="fa-solid fa-sun text-amber-400 text-sm"></i>
@@ -268,16 +312,16 @@
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
       </div>
       
-      <!-- Radar Screen Display -->
-      <div class="relative w-24 h-24 rounded-full bg-slate-950/80 border border-cyan-500/40 overflow-hidden flex items-center justify-center">
+      <!-- Interactive Radar Screen Display -->
+      <div class="relative w-24 h-24 rounded-full bg-slate-950/80 border border-cyan-500/40 overflow-hidden flex items-center justify-center cursor-pointer" title="Radar Map: Click Blips to Fast-Travel">
         <!-- Concentric Distance Range Rings -->
-        <div class="absolute inset-1 rounded-full border border-cyan-500/20"></div>
-        <div class="absolute inset-3 rounded-full border border-cyan-500/20"></div>
-        <div class="absolute inset-6 rounded-full border border-cyan-500/20"></div>
-        <div class="absolute inset-0 flex items-center justify-center">
+        <div class="absolute inset-1 rounded-full border border-cyan-500/20 pointer-events-none"></div>
+        <div class="absolute inset-3 rounded-full border border-cyan-500/20 pointer-events-none"></div>
+        <div class="absolute inset-6 rounded-full border border-cyan-500/20 pointer-events-none"></div>
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div class="w-full h-[1px] bg-cyan-500/20"></div>
         </div>
-        <div class="absolute inset-0 flex items-center justify-center">
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div class="h-full w-[1px] bg-cyan-500/20"></div>
         </div>
 
@@ -285,16 +329,16 @@
         <div class="absolute inset-0 radar-sweep pointer-events-none"></div>
 
         <!-- Ship Marker (Center) -->
-        <div class="w-2 h-2 rounded-full bg-amber-400 border border-white z-10 shadow-lg"></div>
+        <div class="w-2 h-2 rounded-full bg-amber-400 border border-white z-10 shadow-lg pointer-events-none"></div>
 
-        <!-- Archipelago Radar Blips -->
-        <div id="radar-blip-0" class="absolute w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8] transition-all duration-300" style="top: 35%; right: 20%;" title="Island 1"></div>
-        <div id="radar-blip-1" class="absolute w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all duration-300" style="top: 55%; left: 20%;" title="Island 2"></div>
-        <div id="radar-blip-2" class="absolute w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7] transition-all duration-300" style="top: 75%; right: 22%;" title="Island 3"></div>
-        <div id="radar-blip-3" class="absolute w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] transition-all duration-300" style="bottom: 12%; left: 46%;" title="Island 4"></div>
+        <!-- Archipelago Radar Blips (Clickable to Fast-Travel) -->
+        <button onclick="sailToIsland(0); showToast('Navigating to Cloud Genesis', 'fa-cloud');" id="radar-blip-0" class="absolute w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#38bdf8] transition-all duration-300 hover:scale-150 z-20" style="top: 35%; right: 20%;" title="Island 1: Cloud Genesis"></button>
+        <button onclick="sailToIsland(1); showToast('Navigating to InfoSec Bastion', 'fa-shield-halved');" id="radar-blip-1" class="absolute w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981] transition-all duration-300 hover:scale-150 z-20" style="top: 55%; left: 20%;" title="Island 2: InfoSec Bastion"></button>
+        <button onclick="sailToIsland(2); showToast('Navigating to Gen AI Sanctuary', 'fa-brain');" id="radar-blip-2" class="absolute w-2.5 h-2.5 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7] transition-all duration-300 hover:scale-150 z-20" style="top: 75%; right: 22%;" title="Island 3: Gen AI Core"></button>
+        <button onclick="sailToIsland(3); showToast('Navigating to Anchorage', 'fa-flag-checkered');" id="radar-blip-3" class="absolute w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b] transition-all duration-300 hover:scale-150 z-20" style="bottom: 12%; left: 46%;" title="Island 4: The Anchorage"></button>
       </div>
       
-      <span class="text-[9px] font-mono text-slate-400">FAIRWAY DEPTH: 140M</span>
+      <span class="text-[9px] font-mono text-slate-400">CLICK BLIP TO SAIL</span>
     </div>
   </div>
 
@@ -322,13 +366,19 @@
     <!-- Steer & Quick Controls Info -->
     <div class="flex flex-wrap items-center justify-center gap-4 text-[11px] text-slate-400 pointer-events-auto">
       <span class="hidden sm:flex items-center gap-1.5 bg-slate-900/70 px-3 py-1 rounded-full border border-slate-800">
-        <i class="fa-solid fa-mouse text-cyan-400"></i> Scroll Down to Sail • Drag to Steer Helm • Click Monoliths
+        <i class="fa-solid fa-mouse text-cyan-400"></i> Scroll to Sail • Drag to Steer • [T] Spyglass • [F] Cannon
       </span>
+      <button onclick="fireCannon(true)" class="text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1 transition-all hover:scale-105" title="Fire Naval Cannon (Key: F)">
+        <i class="fa-solid fa-bomb"></i> Fire Cannon
+      </button>
+      <button onclick="playShipBell()" class="text-yellow-400 hover:text-yellow-300 font-semibold flex items-center gap-1 transition-all hover:scale-105" title="Ring Ship Bell">
+        <i class="fa-solid fa-bell"></i> Ship Bell
+      </button>
       <button onclick="openCaptainLog()" class="text-amber-400 hover:text-amber-300 font-semibold underline underline-offset-2 flex items-center gap-1 transition-all hover:scale-105">
         <i class="fa-solid fa-book-open"></i> Captain's Logbook
       </button>
       <button onclick="runPortfolioTestSuite()" class="text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 transition-all hover:scale-105">
-        <i class="fa-solid fa-flask"></i> Run QA Suite (16 Tests)
+        <i class="fa-solid fa-flask"></i> Run QA Suite (18 Tests)
       </button>
     </div>
   </footer>
@@ -380,7 +430,7 @@
           </li>
         </ul>
         <p class="text-xs text-slate-400 italic pt-1">
-          Scroll downward to steer forward, click any island monument in the 3D world, or open the "Recruiter Brief" above for an instant resume snapshot.
+          Scroll down to steer forward, click any island monument in the 3D world, or open the "Recruiter Brief" above for an instant resume snapshot.
         </p>
       </div>
 
@@ -487,9 +537,9 @@
             <i class="fa-brands fa-linkedin-in"></i> LinkedIn
           </a>
         </div>
-        <a href="mailto:spravinMCA25@stu.alliance.edu.in" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-md shadow-cyan-500/20">
-          <i class="fa-solid fa-paper-plane"></i> Contact Pravin
-        </a>
+        <button onclick="copyEmail()" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 shadow-md shadow-cyan-500/20">
+          <i class="fa-solid fa-copy"></i> Copy Email
+        </button>
       </div>
     </div>
   </div>
@@ -587,13 +637,20 @@
     let voyageSpline;
     let waterMesh, waterGeo;
     let shipGroup, wheelGroup;
+    let cannonPort, cannonStarboard;
+    let deckLanterns = [];
     let islandGroup1, islandGroup2, islandGroup3, islandGroup4;
     let dirLight, hemiLight;
 
-    // Particle Systems (Ocean Spray, Stars, Bioluminescent Plankton)
+    // Particle Systems (Bow Spray, Stern Wake, Cannon Smoke, Stars, Plankton)
     let bowSprayParticles = null;
+    let sternWakeParticles = null;
+    let cannonSmokeParticles = null;
     let starfieldParticles = null;
     let planktonParticles = null;
+
+    // Wildlife Life System: Seagull Flock
+    let seagulls = [];
 
     // 3D In-World Hologram Monoliths & Raycasting
     let holographicMonoliths = [];
@@ -606,11 +663,15 @@
     let targetT = 0.0;
     let isAutoCruising = false;
     let isDragging = false;
+    let isSpyglassActive = false;
     let previousMousePosition = { x: 0, y: 0 };
     let cameraYaw = 0.0;
     let cameraPitch = 0.0;
     let targetYaw = 0.0;
     let targetPitch = 0.0;
+
+    // Last milestone chime trigger
+    let lastChimedMilestone = -1;
 
     // Flag pennant geometry
     let flagMesh;
@@ -620,7 +681,7 @@
     let weatherTimerSeconds = 35;
     let weatherTimerInterval = null;
 
-    // Audio Context
+    // Audio Context & Synthesizers
     let audioCtx = null;
     let audioGain = null;
     let isAudioPlaying = false;
@@ -656,7 +717,7 @@
       dirLight.position.set(120, 220, 80);
       scene.add(dirLight);
 
-      // 4. Catmull-Rom Voyage Spline (Guaranteed collision-free deep water fairway channel)
+      // 4. Catmull-Rom Voyage Spline
       voyageSpline = new THREE.CatmullRomCurve3([
         new THREE.Vector3(0, 0, 0),         // Start: Open Caribbean waters
         new THREE.Vector3(10, 0, -180),     // Pass Island 1 (Starboard at X: 155, distance: 145)
@@ -671,8 +732,11 @@
       createMilestoneIslands();
       createSkyAtmosphere();
       createOceanSprayParticles();
+      createSternWakeParticles();
+      createCannonSmokeParticles();
       createStarfield();
       createBioluminescentPlankton();
+      createSeagulls();
 
       // Setup Events & UI Listeners
       setupControls();
@@ -705,7 +769,8 @@
       palmTrunk: new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.8 }),
       palmFrond: new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.5, side: THREE.DoubleSide }),
       broadleafFoliage: new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.7, flatShading: true }),
-      grass: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6, side: THREE.DoubleSide })
+      grass: new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.6, side: THREE.DoubleSide }),
+      seagullMat: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 })
     };
 
     const FoliageFactory = {
@@ -790,6 +855,7 @@
       createNavalCannon(x, z, isPortSide = true) {
         const cannonGroup = new THREE.Group();
         cannonGroup.position.set(x, 1.85, z);
+        cannonGroup.userData = { isCannon: true, isPort: isPortSide, originalZ: z };
 
         const carriage = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.8), MaterialPalette.carriage);
         cannonGroup.add(carriage);
@@ -823,6 +889,7 @@
         const light = new THREE.PointLight(0xfbbf24, 0.8, 12);
         light.position.y = 0.8;
         group.add(light);
+        deckLanterns.push(light);
 
         return group;
       },
@@ -844,11 +911,8 @@
     const IslandFactory = {
       createBaseLandmass({ sandRadiusTop = 75, sandRadiusBottom = 95, sandHeight = 12, sandColor = 0xfef08a, mountainRadius = 60, mountainHeight = 36, mountainColor = 0x16a34a, foamRadius = 96 }) {
         const group = new THREE.Group();
-
-        // Shoreline Foam
         group.add(FoliageFactory.createShoreFoamRing(foamRadius));
 
-        // Sand Shelf
         const sand = new THREE.Mesh(
           new THREE.CylinderGeometry(sandRadiusTop, sandRadiusBottom, sandHeight, 16),
           new THREE.MeshStandardMaterial({ color: sandColor, roughness: 0.9 })
@@ -856,7 +920,6 @@
         sand.position.y = sandHeight * 0.16;
         group.add(sand);
 
-        // Mountain / Interior Elevation
         const mountain = new THREE.Mesh(
           new THREE.ConeGeometry(mountainRadius, mountainHeight, 12),
           new THREE.MeshStandardMaterial({ color: mountainColor, roughness: 0.8 })
@@ -872,11 +935,9 @@
     // 5. DYNAMIC CARIBBEAN OCEAN
     // -------------------------------------------------------------
     function createOcean() {
-      // High-subdivision plane for dynamic wave vertex displacement
       waterGeo = new THREE.PlaneGeometry(1600, 1600, 128, 128);
       waterGeo.rotateX(-Math.PI / 2);
 
-      // Store initial baseline positions
       const pos = waterGeo.attributes.position;
       waterGeo.userData = { initialY: new Float32Array(pos.count) };
       for (let i = 0; i < pos.count; i++) {
@@ -903,7 +964,6 @@
       for (let i = 0; i < pos.count; i++) {
         const u = pos.getX(i);
         const w = pos.getZ(i);
-        // Layered multi-frequency wave formula
         const wave = Math.sin(u * 0.035 + time * 1.8) * 0.7 +
                      Math.cos(w * 0.025 + time * 1.3) * 0.8 +
                      Math.sin((u + w) * 0.015 + time * 0.9) * 0.5;
@@ -1001,9 +1061,19 @@
       mapParchment.position.set(1.9, 3.86, 2.5);
       shipGroup.add(mapParchment);
 
-      // Port & Starboard Naval Carronades
-      shipGroup.add(Shipyard.createNavalCannon(-4.8, -3.5, true));
-      shipGroup.add(Shipyard.createNavalCannon(4.8, -3.5, false));
+      // Brass Ship's Bell
+      const bellGroup = new THREE.Group();
+      bellGroup.position.set(0, 4.2, -3.8);
+      const bellMesh = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.5, 12), MaterialPalette.brass);
+      bellMesh.position.y = 0.2;
+      bellGroup.add(bellMesh);
+      shipGroup.add(bellGroup);
+
+      // Port & Starboard Naval Carronades (Stored for interactive firing)
+      cannonPort = Shipyard.createNavalCannon(-4.8, -3.5, true);
+      cannonStarboard = Shipyard.createNavalCannon(4.8, -3.5, false);
+      shipGroup.add(cannonPort);
+      shipGroup.add(cannonStarboard);
 
       // Deck Sternpost Lanterns with Warm Lights
       shipGroup.add(Shipyard.createDeckLantern(-4.2, 4.0, 7.5));
@@ -1030,7 +1100,7 @@
     }
 
     // -------------------------------------------------------------
-    // 7. PARTICLES: OCEAN BOW SPRAY, STARS, BIOLUMINESCENCE
+    // 7. PARTICLES: BOW SPRAY, STERN WAKE, CANNON SMOKE, STARS, PLANKTON
     // -------------------------------------------------------------
     function createOceanSprayParticles() {
       const particleCount = 200;
@@ -1089,6 +1159,122 @@
       pos.needsUpdate = true;
     }
 
+    function createSternWakeParticles() {
+      const count = 150;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const vel = [];
+
+      for (let i = 0; i < count; i++) {
+        pos[i * 3 + 0] = (Math.random() - 0.5) * 3;
+        pos[i * 3 + 1] = 0.1;
+        pos[i * 3 + 2] = 8 + Math.random() * 16;
+
+        vel.push({
+          spread: (Math.random() - 0.5) * 0.12,
+          drift: Math.random() * 0.1 + 0.05,
+          life: Math.random() * 1.5
+        });
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0xe0f2fe,
+        size: 1.2,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+      });
+
+      sternWakeParticles = new THREE.Points(geo, mat);
+      sternWakeParticles.userData = { velocities: vel };
+      if (shipGroup) shipGroup.add(sternWakeParticles);
+    }
+
+    function updateSternWake(delta) {
+      if (!sternWakeParticles) return;
+      const pos = sternWakeParticles.geometry.attributes.position;
+      const vel = sternWakeParticles.userData.velocities;
+
+      for (let i = 0; i < vel.length; i++) {
+        let x = pos.getX(i) + vel[i].spread;
+        let z = pos.getZ(i) + vel[i].drift;
+
+        vel[i].life -= delta * 0.8;
+
+        if (vel[i].life <= 0) {
+          x = (Math.random() - 0.5) * 2.5;
+          z = 7 + Math.random() * 3;
+          vel[i].life = 1.5;
+        }
+
+        pos.setXYZ(i, x, 0.1, z);
+      }
+      pos.needsUpdate = true;
+    }
+
+    function createCannonSmokeParticles() {
+      const count = 80;
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(count * 3);
+      const vel = [];
+
+      for (let i = 0; i < count; i++) {
+        pos[i * 3 + 0] = 0;
+        pos[i * 3 + 1] = -50;
+        pos[i * 3 + 2] = 0;
+        vel.push({ x: 0, y: 0, z: 0, life: 0 });
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const mat = new THREE.PointsMaterial({
+        color: 0xd6d3d1,
+        size: 1.8,
+        transparent: true,
+        opacity: 0.8
+      });
+
+      cannonSmokeParticles = new THREE.Points(geo, mat);
+      cannonSmokeParticles.userData = { velocities: vel };
+      scene.add(cannonSmokeParticles);
+    }
+
+    function triggerCannonSmoke(x, y, z, dirX) {
+      if (!cannonSmokeParticles) return;
+      const pos = cannonSmokeParticles.geometry.attributes.position;
+      const vel = cannonSmokeParticles.userData.velocities;
+
+      for (let i = 0; i < vel.length; i++) {
+        pos.setXYZ(i, x + (Math.random() - 0.5) * 0.8, y + (Math.random() - 0.5) * 0.8, z + (Math.random() - 0.5) * 0.8);
+        vel[i] = {
+          x: dirX * (Math.random() * 8 + 4),
+          y: Math.random() * 4 + 2,
+          z: (Math.random() - 0.5) * 4,
+          life: 1.0
+        };
+      }
+      pos.needsUpdate = true;
+    }
+
+    function updateCannonSmoke(delta) {
+      if (!cannonSmokeParticles) return;
+      const pos = cannonSmokeParticles.geometry.attributes.position;
+      const vel = cannonSmokeParticles.userData.velocities;
+
+      for (let i = 0; i < vel.length; i++) {
+        if (vel[i].life > 0) {
+          vel[i].life -= delta * 1.5;
+          let x = pos.getX(i) + vel[i].x * delta;
+          let y = pos.getY(i) + vel[i].y * delta;
+          let z = pos.getZ(i) + vel[i].z * delta;
+          pos.setXYZ(i, x, y, z);
+        } else {
+          pos.setY(i, -100);
+        }
+      }
+      pos.needsUpdate = true;
+    }
+
     function createStarfield() {
       const count = 1200;
       const geo = new THREE.BufferGeometry();
@@ -1140,7 +1326,68 @@
     }
 
     // -------------------------------------------------------------
-    // 8. HOLOGRAPHIC CANVAS MONOLITHS & ISLAND GENERATION
+    // 8. PROCEDURAL SEAGULL FLOCK (ORGANIC LIFE SYSTEM)
+    // -------------------------------------------------------------
+    function createSeagulls() {
+      const birdCount = 6;
+      for (let i = 0; i < birdCount; i++) {
+        const bird = new THREE.Group();
+
+        // Bird Body
+        const bodyGeo = new THREE.ConeGeometry(0.3, 1.4, 4);
+        bodyGeo.rotateX(Math.PI / 2);
+        const body = new THREE.Mesh(bodyGeo, MaterialPalette.seagullMat);
+        bird.add(body);
+
+        // Wings
+        const wingGeoL = new THREE.PlaneGeometry(1.2, 0.4);
+        wingGeoL.rotateX(-Math.PI / 2);
+        const wingL = new THREE.Mesh(wingGeoL, MaterialPalette.seagullMat);
+        wingL.position.set(-0.6, 0.1, 0);
+        bird.add(wingL);
+
+        const wingGeoR = new THREE.PlaneGeometry(1.2, 0.4);
+        wingGeoR.rotateX(-Math.PI / 2);
+        const wingR = new THREE.Mesh(wingGeoR, MaterialPalette.seagullMat);
+        wingR.position.set(0.6, 0.1, 0);
+        bird.add(wingR);
+
+        bird.userData = {
+          wingL: wingL,
+          wingR: wingR,
+          center: new THREE.Vector3((Math.random() - 0.5) * 300, 45 + Math.random() * 25, -200 - Math.random() * 600),
+          radiusX: 60 + Math.random() * 40,
+          radiusZ: 60 + Math.random() * 40,
+          speed: 0.6 + Math.random() * 0.4,
+          offset: Math.random() * Math.PI * 2
+        };
+
+        scene.add(bird);
+        seagulls.push(bird);
+      }
+    }
+
+    function updateSeagulls(time) {
+      seagulls.forEach(b => {
+        const u = b.userData;
+        const angle = time * u.speed + u.offset;
+        b.position.x = u.center.x + Math.cos(angle) * u.radiusX;
+        b.position.z = u.center.z + Math.sin(angle) * u.radiusZ;
+        b.position.y = u.center.y + Math.sin(time * 2.0 + u.offset) * 3.5;
+
+        // Heading tangential to orbit
+        b.rotation.y = -angle + Math.PI / 2;
+        b.rotation.z = Math.sin(time * 2.0 + u.offset) * 0.15;
+
+        // Wing flapping
+        const flap = Math.sin(time * 10.0 + u.offset) * 0.45;
+        u.wingL.rotation.z = flap;
+        u.wingR.rotation.z = -flap;
+      });
+    }
+
+    // -------------------------------------------------------------
+    // 9. HOLOGRAPHIC CANVAS MONOLITHS & ISLAND GENERATION
     // -------------------------------------------------------------
     function generateHologramCanvasTexture(config) {
       const canvas = document.createElement('canvas');
@@ -1532,7 +1779,7 @@
     }
 
     // -------------------------------------------------------------
-    // 9. SKY & ATMOSPHERIC CYCLES WITH FLUID GSAP COLOR LERPING
+    // 10. SKY & ATMOSPHERIC CYCLES WITH FLUID GSAP COLOR LERPING
     // -------------------------------------------------------------
     function createSkyAtmosphere() {
       const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, flatShading: true });
@@ -1602,7 +1849,6 @@
       currentWeatherMode = mode;
       const preset = weatherPresets[mode] || weatherPresets.noon;
 
-      // GSAP Smooth Cinematic Color & Fog Lerp Transition (No more jarring color snap!)
       const targetSky = new THREE.Color(preset.sky);
       const targetFog = new THREE.Color(preset.fog);
       const targetHemiSky = new THREE.Color(preset.hemiSky);
@@ -1625,7 +1871,6 @@
           gsap.to(planktonParticles.material, { opacity: preset.planktonOpacity, duration: 2.2 });
         }
       } else {
-        // Fallback
         scene.background.set(preset.sky);
         scene.fog.color.set(preset.fog);
         scene.fog.density = preset.fogDensity;
@@ -1635,7 +1880,6 @@
         renderer.toneMappingExposure = preset.exposure;
       }
 
-      // Update Top HUD Badges
       const iconEl = document.getElementById('weather-icon');
       const labelEl = document.getElementById('weather-label');
       if (iconEl && labelEl) {
@@ -1664,7 +1908,7 @@
     }
 
     // -------------------------------------------------------------
-    // 10. IN-WORLD 3D BILLBOARD HUD TAGS & RADAR BLIPS
+    // 11. IN-WORLD 3D BILLBOARD HUD TAGS & RADAR BLIPS
     // -------------------------------------------------------------
     function setupInWorldHUD() {
       const container = document.getElementById('island-tags-container');
@@ -1726,7 +1970,7 @@
     }
 
     // -------------------------------------------------------------
-    // 11. NAVIGATION, STEERING, COMPASS & CONTROLS
+    // 12. NAVIGATION, STEERING, SPYGLASS & CONTROLS
     // -------------------------------------------------------------
     function setupControls() {
       const scrubber = document.getElementById('voyage-scrubber');
@@ -1750,18 +1994,28 @@
         isDragging = true;
         previousMousePosition = { x: e.clientX, y: e.clientY };
 
-        // 3D Raycasting: Direct clicking on in-world monolith screens
+        // 3D Raycasting: Direct clicking on in-world monolith screens & cannons
         mouseVector.x = (e.clientX / window.innerWidth) * 2 - 1;
         mouseVector.y = -(e.clientY / window.innerHeight) * 2 + 1;
         raycaster.setFromCamera(mouseVector, camera);
 
         const interactiveScreens = holographicMonoliths.map(m => m.screen);
-        const intersects = raycaster.intersectObjects(interactiveScreens);
-        if (intersects.length > 0) {
-          const clicked = intersects[0].object;
+        const screenHits = raycaster.intersectObjects(interactiveScreens);
+        if (screenHits.length > 0) {
+          const clicked = screenHits[0].object;
           if (clicked.userData && clicked.userData.isMonolithScreen) {
             sailToIsland(clicked.userData.islandIndex);
             openModal(clicked.userData.islandIndex);
+            return;
+          }
+        }
+
+        // Raycasting for deck cannons
+        if (cannonPort && cannonStarboard) {
+          const cannonHits = raycaster.intersectObjects([cannonPort, cannonStarboard], true);
+          if (cannonHits.length > 0) {
+            const isPort = cannonHits[0].point.x < 0;
+            fireCannon(isPort);
           }
         }
       });
@@ -1780,7 +2034,7 @@
 
       window.addEventListener('mouseup', () => { isDragging = false; });
 
-      // Touch Events for Mobile / Tablet
+      // Touch Events
       window.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
           isDragging = true;
@@ -1797,9 +2051,7 @@
         targetPitch -= deltaY * 0.002;
         targetPitch = Math.max(-0.35, Math.min(0.45, targetPitch));
 
-        // Swipe forward / backward to sail
         targetT = Math.min(1.0, Math.max(0.0, targetT - deltaY * 0.0004));
-
         previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       }, { passive: true });
 
@@ -1815,13 +2067,51 @@
           targetYaw += 0.08;
         } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
           targetYaw -= 0.08;
+        } else if (e.key === 't' || e.key === 'T') {
+          toggleSpyglass();
+        } else if (e.key === 'f' || e.key === 'F') {
+          fireCannon(true);
         } else if (e.key === 'Escape') {
+          if (isSpyglassActive) toggleSpyglass();
           closeModal();
           closeCaptainLog();
           closeExecutiveBrief();
           closeTestModal();
         }
       });
+    }
+
+    function resetHeading() {
+      targetYaw = 0;
+      targetPitch = 0;
+      showToast('Helm camera aligned forward', 'fa-compass');
+    }
+
+    function toggleSpyglass() {
+      isSpyglassActive = !isSpyglassActive;
+      const overlay = document.getElementById('spyglass-overlay');
+      const btn = document.getElementById('spyglass-btn');
+
+      if (isSpyglassActive) {
+        if (overlay) overlay.classList.remove('opacity-0');
+        if (btn) btn.classList.add('bg-amber-500/20', 'text-amber-300', 'border-amber-400/50');
+        if (window.gsap) {
+          gsap.to(camera, { fov: 24, duration: 0.8, ease: "power2.out", onUpdate: () => camera.updateProjectionMatrix() });
+        } else {
+          camera.fov = 24;
+          camera.updateProjectionMatrix();
+        }
+        showToast('Captain\'s Spyglass Engaged (2.5x)', 'fa-magnifying-glass');
+      } else {
+        if (overlay) overlay.classList.add('opacity-0');
+        if (btn) btn.classList.remove('bg-amber-500/20', 'text-amber-300', 'border-amber-400/50');
+        if (window.gsap) {
+          gsap.to(camera, { fov: 60, duration: 0.8, ease: "power2.out", onUpdate: () => camera.updateProjectionMatrix() });
+        } else {
+          camera.fov = 60;
+          camera.updateProjectionMatrix();
+        }
+      }
     }
 
     function inspectCurrentIsland() {
@@ -1843,28 +2133,141 @@
         if (isAutoCruising) {
           btn.classList.add('bg-amber-500/20', 'border-amber-400');
           btn.innerHTML = `<i class="fa-solid fa-anchor text-amber-400"></i><span class="hidden sm:inline">Cruising</span>`;
+          showToast('Autopilot engaged along fairway', 'fa-anchor');
         } else {
           btn.classList.remove('bg-amber-500/20', 'border-amber-400');
           btn.innerHTML = `<i class="fa-solid fa-compass text-amber-400"></i><span class="hidden sm:inline">Cruise</span>`;
+          showToast('Manual helm control resumed', 'fa-compass');
         }
       }
     }
 
     // -------------------------------------------------------------
-    // 12. AUDIO AMBIANCE SYNTHESIZER (WEB AUDIO API) & VISUALIZER
+    // 13. AUDIO SYNTHESIZERS: CANNON BLAST, SHIP BELL, AMBIANCE
     // -------------------------------------------------------------
+    function getAudioContext() {
+      if (!audioCtx) {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          console.warn('AudioContext failed to initialize', e);
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function fireCannon(isPort = true) {
+      const ctx = getAudioContext();
+      const cannon = isPort ? cannonPort : cannonStarboard;
+
+      // Recoil carriage animation
+      if (cannon && window.gsap) {
+        gsap.to(cannon.position, { z: cannon.userData.originalZ + 0.45, duration: 0.08, ease: "power4.out", onComplete: () => {
+          gsap.to(cannon.position, { z: cannon.userData.originalZ, duration: 0.6, ease: "power2.out" });
+        }});
+      }
+
+      // Trigger smoke particles at muzzle
+      const muzzleX = isPort ? -5.4 : 5.4;
+      if (shipGroup) {
+        const worldPos = new THREE.Vector3(muzzleX, 2.2, -3.5);
+        worldPos.applyMatrix4(shipGroup.matrixWorld);
+        triggerCannonSmoke(worldPos.x, worldPos.y, worldPos.z, isPort ? -1 : 1);
+      }
+
+      // Procedural Cannon Blast Audio Synthesis
+      if (ctx) {
+        try {
+          const now = ctx.currentTime;
+          // Noise burst
+          const bufferSize = ctx.sampleRate * 0.8;
+          const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = noiseBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.15));
+          }
+
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const filter = ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(450, now);
+          filter.frequency.exponentialRampToValueAtTime(60, now + 0.6);
+
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.7, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(ctx.destination);
+          noise.start(now);
+
+          // Sub-bass thump oscillator
+          const osc = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(120, now);
+          osc.frequency.exponentialRampToValueAtTime(35, now + 0.45);
+          oscGain.gain.setValueAtTime(0.8, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+          osc.connect(oscGain);
+          oscGain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.5);
+        } catch (e) {
+          console.warn('Cannon sound synthesis failed', e);
+        }
+      }
+
+      showToast(isPort ? 'Port Carronade Fired! 💥' : 'Starboard Carronade Fired! 💥', 'fa-bomb');
+    }
+
+    function playShipBell() {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      try {
+        const now = ctx.currentTime;
+        const freqs = [587.33, 1174.66, 1762.0]; // D5 harmonic bell spectrum
+        const gains = [0.4, 0.25, 0.12];
+
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, now);
+
+          g.gain.setValueAtTime(gains[idx], now);
+          g.gain.exponentialRampToValueAtTime(0.001, now + 1.8);
+
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 1.8);
+        });
+
+        showToast('Ship\'s Bell Tolled 🔔', 'fa-bell');
+      } catch (e) {
+        console.warn('Bell chime synthesis error', e);
+      }
+    }
+
     function toggleAudio() {
       const btn = document.getElementById('audio-btn');
       const icon = document.getElementById('audio-icon');
       const eqBars = document.getElementById('audio-eq-bars');
+      const ctx = getAudioContext();
 
-      if (!audioCtx) {
+      if (!isAudioPlaying && ctx) {
         try {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          
-          // Generate Pink Noise for Ocean Waves
-          const bufferSize = audioCtx.sampleRate * 2;
-          const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const bufferSize = ctx.sampleRate * 2;
+          const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
           const output = noiseBuffer.getChannelData(0);
           let b0 = 0, b1 = 0, b2 = 0;
           for (let i = 0; i < bufferSize; i++) {
@@ -1875,55 +2278,79 @@
             output[i] = (b0 + b1 + b2) * 0.12;
           }
 
-          const whiteNoise = audioCtx.createBufferSource();
+          const whiteNoise = ctx.createBufferSource();
           whiteNoise.buffer = noiseBuffer;
           whiteNoise.loop = true;
 
-          const filter = audioCtx.createBiquadFilter();
+          const filter = ctx.createBiquadFilter();
           filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(380, audioCtx.currentTime);
+          filter.frequency.setValueAtTime(380, ctx.currentTime);
 
-          // Wave rhythm LFO
-          const lfo = audioCtx.createOscillator();
-          lfo.frequency.setValueAtTime(0.22, audioCtx.currentTime);
-          const lfoGain = audioCtx.createGain();
-          lfoGain.gain.setValueAtTime(180, audioCtx.currentTime);
+          const lfo = ctx.createOscillator();
+          lfo.frequency.setValueAtTime(0.22, ctx.currentTime);
+          const lfoGain = ctx.createGain();
+          lfoGain.gain.setValueAtTime(180, ctx.currentTime);
           lfo.connect(lfoGain);
           lfoGain.connect(filter.frequency);
           lfo.start();
 
-          audioGain = audioCtx.createGain();
-          audioGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          audioGain = ctx.createGain();
+          audioGain.gain.setValueAtTime(0.3, ctx.currentTime);
 
           whiteNoise.connect(filter);
           filter.connect(audioGain);
-          audioGain.connect(audioCtx.destination);
+          audioGain.connect(ctx.destination);
           whiteNoise.start();
 
           isAudioPlaying = true;
           if (icon) icon.className = 'fa-solid fa-volume-high text-cyan-300 text-sm';
           if (eqBars) eqBars.classList.replace('hidden', 'flex');
+          showToast('Ocean surf ambiance active', 'fa-volume-high');
         } catch (e) {
-          console.warn('AudioContext requires user interaction', e);
+          console.warn('Audio synthesis failed', e);
         }
-      } else {
-        if (isAudioPlaying) {
-          audioCtx.suspend();
-          isAudioPlaying = false;
-          if (icon) icon.className = 'fa-solid fa-volume-xmark text-sm';
-          if (eqBars) eqBars.classList.replace('flex', 'hidden');
-        } else {
-          audioCtx.resume();
-          isAudioPlaying = true;
-          if (icon) icon.className = 'fa-solid fa-volume-high text-cyan-300 text-sm';
-          if (eqBars) eqBars.classList.replace('hidden', 'flex');
-        }
+      } else if (isAudioPlaying && ctx) {
+        ctx.suspend();
+        isAudioPlaying = false;
+        if (icon) icon.className = 'fa-solid fa-volume-xmark text-sm';
+        if (eqBars) eqBars.classList.replace('flex', 'hidden');
+        showToast('Ocean ambiance muted', 'fa-volume-xmark');
       }
     }
 
     // -------------------------------------------------------------
-    // 13. UI MODAL HANDLERS WITH FLUID GSAP SPRING CHOREOGRAPHY
+    // 14. UI MODAL HANDLERS, TOASTS & CLIPBOARD
     // -------------------------------------------------------------
+    function showToast(msg, iconClass = 'fa-circle-check') {
+      const toast = document.getElementById('toast-notification');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+      if (!toast || !toastMsg) return;
+
+      toastMsg.textContent = msg;
+      if (toastIcon) toastIcon.className = `fa-solid ${iconClass}`;
+
+      toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+        toast.classList.remove('opacity-100', 'translate-y-0');
+      }, 2600);
+    }
+
+    function copyEmail() {
+      const email = 'spravinMCA25@stu.alliance.edu.in';
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(email).then(() => {
+          showToast('Email copied to clipboard! 📋', 'fa-envelope');
+        });
+      } else {
+        showToast('Contact: ' + email, 'fa-envelope');
+      }
+    }
+
     function openModalWithGSAP(modalId, cardId) {
       const modal = document.getElementById(modalId);
       const card = document.getElementById(cardId);
@@ -1986,7 +2413,10 @@
             ${data.skills.map(s => `<span class="px-2.5 py-1 rounded-lg bg-slate-900/90 text-[11px] font-mono text-cyan-300 border border-slate-700">${s}</span>`).join('')}
           </div>
         </div>
-        <div class="flex items-center justify-end gap-2 pt-4 border-t border-slate-800">
+        <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+          <button onclick="copyEmail()" class="text-xs font-mono text-amber-400 hover:text-amber-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-envelope"></i> spravinMCA25@stu.alliance.edu.in
+          </button>
           <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition-all hover:scale-105">
             Close Log
           </button>
@@ -2021,7 +2451,7 @@
     }
 
     // -------------------------------------------------------------
-    // 14. EXPANDED 16-POINT AUTOMATED QA INTEGRATION TEST SUITE
+    // 15. EXPANDED 18-POINT AUTOMATED QA INTEGRATION TEST SUITE
     // -------------------------------------------------------------
     function closeTestModal() {
       closeModalWithGSAP('test-results-modal', 'test-results-card');
@@ -2034,7 +2464,7 @@
 
       openModalWithGSAP('test-results-modal', 'test-results-card');
       logContainer.innerHTML = '';
-      summaryBadge.textContent = 'Running 16 Tests...';
+      summaryBadge.textContent = 'Running 18 Tests...';
       summaryBadge.className = 'px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
 
       const tests = [
@@ -2046,13 +2476,15 @@
         { name: "Ship Group Buoyant on Deck", fn: () => shipGroup && shipGroup.position.y >= -1.0 },
         { name: "Rotatable Ship's Wheel Assembled", fn: () => wheelGroup && wheelGroup.children.length >= 10 },
         { name: "Ocean Bow Spray Particles Mounted", fn: () => bowSprayParticles && bowSprayParticles.userData.velocities.length > 50 },
+        { name: "Stern Wake Foam Particles Active", fn: () => sternWakeParticles && sternWakeParticles.userData.velocities.length > 50 },
         { name: "Twinkling Starfield Active", fn: () => starfieldParticles && starfieldParticles.geometry.attributes.position.count >= 1000 },
         { name: "Dynamic Caribbean Ocean Mesh Subdivided", fn: () => waterGeo && waterGeo.attributes.position.count > 10000 },
+        { name: "Flocking Seagulls Life System", fn: () => seagulls && seagulls.length >= 6 },
+        { name: "Interactive Naval Carronades Mounted", fn: () => cannonPort && cannonStarboard },
         { name: "Island 1: Cloud Genesis Initialized", fn: () => islandGroup1 && islandGroup1.children.length > 4 },
         { name: "Island 2: InfoSec Bastion & Shield", fn: () => islandGroup2 && islandGroup2.userData.shield },
         { name: "Island 3: Gen AI Neural Core", fn: () => islandGroup3 && islandGroup3.userData.core },
         { name: "Island 4: Harbor Lighthouse Beacon", fn: () => islandGroup4 && islandGroup4.userData.beam },
-        { name: "Weather Presets (Noon, Sunset, Night)", fn: () => weatherPresets && weatherPresets.noon && weatherPresets.night },
         { name: "Credential Integrity (BCA 87.30% & MCA Gen AI)", fn: () => MILESTONES[0].badge.includes('87.30%') && MILESTONES[2].badge.includes('Gen AI') }
       ];
 
@@ -2091,7 +2523,7 @@
     }
 
     // -------------------------------------------------------------
-    // 15. ANIMATION RENDER LOOP & FRAME LOGIC
+    // 16. ANIMATION RENDER LOOP & FRAME LOGIC
     // -------------------------------------------------------------
     const clock = new THREE.Clock();
 
@@ -2125,8 +2557,18 @@
       // Update Ocean Waves
       updateOceanWaves(time);
 
-      // Update Bow Spray Particles
+      // Update Bow Spray & Stern Wake Particles
       updateOceanSpray(delta);
+      updateSternWake(delta);
+      updateCannonSmoke(delta);
+
+      // Update Seagulls
+      updateSeagulls(time);
+
+      // Deck lantern subtle organic flicker
+      deckLanterns.forEach((l, idx) => {
+        l.intensity = 0.8 + Math.sin(time * 8.0 + idx * 3.0) * 0.15;
+      });
 
       // Ship Motion Along Catmull-Rom Spline
       if (voyageSpline && shipGroup) {
@@ -2153,11 +2595,27 @@
           wheelGroup.rotation.z = cameraYaw * 1.5 + Math.sin(time * 1.5) * 0.15;
         }
 
-        // Live Compass Dial Sync
+        // Live Compass Dial Sync & Degree Readout
         const compassRose = document.getElementById('compass-rose');
+        const compassBearing = document.getElementById('compass-bearing');
+        const spyglassBearing = document.getElementById('spyglass-bearing');
+
+        const totalRad = -(shipGroup.rotation.y + cameraYaw);
+        let deg = Math.round(((totalRad * 180 / Math.PI) % 360 + 360) % 360);
+        
+        // Cardinal direction calculation
+        const cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+        const cardIdx = Math.round(deg / 22.5) % 16;
+        const cardText = cardinals[cardIdx];
+
         if (compassRose) {
-          const totalAngle = (shipGroup.rotation.y + cameraYaw) * (180 / Math.PI);
-          compassRose.style.transform = `rotate(${-totalAngle}deg)`;
+          compassRose.style.transform = `rotate(${totalRad * (180 / Math.PI)}deg)`;
+        }
+        if (compassBearing) {
+          compassBearing.textContent = `${String(deg).padStart(3, '0')}° ${cardText}`;
+        }
+        if (spyglassBearing) {
+          spyglassBearing.textContent = `BEARING: ${String(deg).padStart(3, '0')}° ${cardText}`;
         }
 
         // Camera locked directly to helm eyepoint
@@ -2212,7 +2670,6 @@
         m.screen.getWorldPosition(worldPos);
         const dist = camera.position.distanceTo(worldPos);
 
-        // Gentle floating pulsation for in-world screen
         m.screen.position.y = Math.sin(time * 2.0 + m.islandIndex) * 0.8;
 
         if (dist < 260 && dist < closestDist) {
@@ -2230,8 +2687,14 @@
         proxHUD.classList.remove('opacity-0', '-translate-y-4');
         proxHUD.classList.add('opacity-100', 'translate-y-0');
 
+        // Automatically chime ship's bell on milestone arrival once
+        if (lastChimedMilestone !== inspectedMonolith) {
+          lastChimedMilestone = inspectedMonolith;
+          playShipBell();
+        }
+
         // Contextual glance towards the monument
-        if (!isDragging) {
+        if (!isDragging && !isSpyglassActive) {
           const toTarget = activeNearMonolith.worldPos.clone().sub(camera.position);
           const desiredAngle = Math.atan2(-toTarget.x, -toTarget.z);
           targetYaw += (desiredAngle * 0.35 - targetYaw) * 0.03;
@@ -2240,7 +2703,7 @@
         inspectedMonolith = null;
         proxHUD.classList.add('opacity-0', '-translate-y-4');
         proxHUD.classList.remove('opacity-100', 'translate-y-0');
-        if (!isDragging) {
+        if (!isDragging && !isSpyglassActive) {
           targetYaw += (0 - targetYaw) * 0.02;
         }
       }
@@ -2259,10 +2722,16 @@
     }
 
     // -------------------------------------------------------------
-    // 16. EXPOSE FUNCTIONS TO WINDOW & AUTO-START
+    // 17. EXPOSE FUNCTIONS TO WINDOW & AUTO-START
     // -------------------------------------------------------------
     window.sailToIsland = sailToIsland;
     window.toggleAutoCruise = toggleAutoCruise;
+    window.toggleSpyglass = toggleSpyglass;
+    window.fireCannon = fireCannon;
+    window.playShipBell = playShipBell;
+    window.resetHeading = resetHeading;
+    window.copyEmail = copyEmail;
+    window.showToast = showToast;
     window.setWeather = setWeather;
     window.toggleAudio = toggleAudio;
     window.openModal = openModal;

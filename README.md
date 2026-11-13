@@ -14,7 +14,7 @@ An interactive, first-person 3D WebGL developer portfolio engineered with **Thre
 6. [The Four-Island Career Archipelago](#-the-four-island-career-archipelago)
 7. [Recruiter UX & Fast-Track Navigation](#-recruiter-ux--fast-track-navigation)
 8. [Controls & Interaction Matrix](#-controls--interaction-matrix)
-9. [Built-In 16-Point QA Diagnostic Suite](#-built-in-16-point-qa-diagnostic-suite)
+9. [Built-In 18-Point QA Diagnostic Suite](#-built-in-18-point-qa-diagnostic-suite)
 10. [Installation, Customization & Deployment](#-installation-customization--deployment)
 11. [Contact & Coordinates](#-contact--coordinates)
 
@@ -58,13 +58,15 @@ To achieve high visual appeal without bloated assets, animations across this por
   - **Night:** Deep void indigo (`#030712`), volumetric midnight fog (`#020617`), moonlight tint (`#93c5fd`), exposure `0.85`.
 
 ### 2. Multi-Layered Particle Systems
-* **Ocean Bow Spray & Wake Foam:** A dynamic 200-particle emitter mounted to the clipper bow prow ejects foaming spray upward and backward as the galleon cuts through the waves, recycling particle lifecycles based on vessel velocity.
-* **Twinkling Starfield:** 1,200 particle stars populate the night dome, smoothly fading to full visibility during the Night cycle.
-* **Bioluminescent Ocean Plankton:** 300 additive cyan particles drift near the water surface, creating a glowing ethereal wake at night.
+* **Ocean Bow Spray Emitter:** Dynamic 200-particle emitter mounted to the clipper bow prow ejecting foaming spray upward and backward as the galleon cuts through the waves, recycling particle lifecycles based on vessel velocity.
+* **Stern Wake Foam Trail:** 160 trailing foam particles issuing from the stern rudder, gently drifting outward and dispersing across the sea surface.
+* **Carronade Muzzle Smoke:** 80 expanding volumetric smoke particles bursting sideways from active carronades upon firing, with randomized velocity and gradual alpha fade.
+* **Twinkling Starfield:** 1,200 particle stars populating the night skybox dome, smoothly fading to full luminance during the Night atmospheric cycle.
+* **Bioluminescent Ocean Plankton:** 300 additive cyan particles drifting near the water surface, creating a glowing ethereal wake at night.
 
 ### 3. Tactile Nautical HUD Micro-Interactions
-* **Live Interactive Brass Compass:** An antique compass dial mounted in the top-left HUD dynamically rotates in real time based on `(shipGroup.rotation.y + cameraYaw)`, always pointing true magnetic North.
-* **Tactical Sonar Radar Minimap:** Positioned in the bottom-left, featuring concentric range rings, a 360° phosphor beam sweep, and active ping blips tracking all 4 milestone islands relative to the ship.
+* **Live Interactive Brass Compass:** An antique compass dial mounted in the top-left HUD dynamically rotates in real time based on `(shipGroup.rotation.y + cameraYaw)`, always pointing true magnetic North with digital degree/cardinal readout.
+* **Tactical Sonar Radar Minimap:** Positioned in the bottom-left, featuring concentric range rings, a 360° phosphor beam sweep, and active clickable ping blips tracking all 4 milestone islands relative to the ship.
 * **Equalizer Soundwave Visualizer:** When ambient waves are toggled ON, a 5-bar responsive equalizer visualizer animates in rhythm with the wave frequency.
 * **Dynamic Knots Speedometer:** Responsive velocity readout (`13.5 - 18.2 KTS`) reflecting cruise and acceleration momentum.
 
@@ -80,13 +82,26 @@ To achieve high visual appeal without bloated assets, animations across this por
 * **Ship Architecture:** Tiered mahogany hull, tumblehome bulwarks, gold-leaf waterline strakes, clipper bow prow, bowsprit spar, raised poop deck with turned brass balusters, captain's sea-chart table, naval carronades, coiled ropes, cargo barrels, and sternpost lanterns.
 * **Dynamic Rigging & Wheel:** Master 8-spoke wooden wheel tilts dynamically with helm steering and swell roll, while the main mast pennant flag flutters in procedural wind.
 
-### 2. In-World 3D Holographic Monoliths & Raycasting
+### 2. Captain's Spyglass / Telescope Mode
+* **Precision Long-Range Scouting:** Press `[T]` or click the Spyglass HUD button to smoothly lerp camera FOV from 60° down to 24° (2.5x optical magnification) using GSAP easing.
+* **Authentic Brass Reticle Viewfinder:** Displays dual-ring antique brass crosshairs, depth measurement ticks, nautical compass bearing, and a circular vignette mask with a slight camera glance towards nearby archipelago landmarks.
+
+### 3. Interactive Naval Carronades (Deck Cannons)
+* **Direct Raycasting & Hotkey Firing:** Aim and click directly on the port or starboard deck cannons, press `[F]`, or click the HUD **"Fire Cannon"** button.
+* **Recoil, Smoke & Audio VFX:** Triggers realistic carriage recoil along the deck via GSAP, bursts volumetric muzzle smoke outward, and synthesizes a procedural Web Audio acoustic cannon blast.
+
+### 4. Flocking Seagulls Wildlife System
+* **Procedural Low-Poly Avian Flock:** 6 procedural low-poly seagulls soaring and circling above the milestone archipelago islands, featuring animated wing-flapping kinematics synchronized with scene delta time.
+
+### 5. In-World 3D Holographic Monoliths & Raycasting
 * **Procedural Canvas Textures:** $1024 \times 1024$ `THREE.CanvasTexture` maps rendered with cyber-scanlines, tech brackets, glowing gradient borders, and wrapped bullet points onto double-sided obsidian monoliths.
 * **Bilateral Raycasting:** Click directly on any 3D monolith in the viewport—or its screen-projected HUD pin—to sail smoothly to that landmark and inspect its dossier.
 * **Proximity Glance Engine:** Sailing within $260\text{ units}$ of a landmark triggers a HUD alert and smoothly glances the helm camera toward the monument.
 
-### 3. Procedural Web Audio Wave Synthesizer
-* **Zero External Audio Files:** Synthesizes realistic ocean surf and rolling waves using a Web Audio API **Pink Noise Buffer** routed through a biquad low-pass filter ($380\text{ Hz}$) modulated by a $0.22\text{ Hz}$ Low-Frequency Oscillator (LFO).
+### 6. Procedural Web Audio Soundscapes (Zero External Audio Files)
+* **Ocean Wave Surf Synthesizer:** Realistic ambient surf synthesized via Web Audio Pink Noise buffer routed through a biquad lowpass filter ($380\text{ Hz}$) modulated by a $0.22\text{ Hz}$ LFO.
+* **Naval Cannon Blast Synthesizer:** Multi-layered explosive rumble using low-frequency decaying noise bursts with rapid frequency modulation.
+* **Harmonic Ship's Bell:** Additive 3-tone acoustic bell chime ($587\text{ Hz}, 1174\text{ Hz}, 1762\text{ Hz}$) triggering upon archipelago waypoint arrivals or manual chime.
 
 ---
 
@@ -138,16 +153,20 @@ $$y(u, w, t) = y_0 + 0.7 \sin(0.035u + 1.8t) + 0.8 \cos(0.025w + 1.3t) + 0.5 \si
 | **Mouse Wheel (Scroll Down / Up)** | Sail forward ($0\% \rightarrow 100\%$) or backtrack along fairway |
 | **Click & Drag / Touch Swipe** | Rotate helm camera yaw/pitch and steer the ship's wheel |
 | **Click on 3D Monolith / HUD Tag** | Sail directly to that island and open its detailed logbook modal |
+| **Click on Deck Cannons** | Raycast & fire the port/starboard carronades with recoil & smoke VFX |
+| **`T` Key / Spyglass Button** | Toggle Captain's Spyglass 2.5x optical zoom viewfinder (`camera.fov: 60° -> 24°`) |
+| **`F` Key / "Fire Cannon" Button** | Fire port/starboard naval carronades with acoustic blast & muzzle smoke |
 | **`W` / `S` or `↑` / `↓` Keys** | Step forward or backward along voyage spline |
 | **`A` / `D` or `←` / `→` Keys** | Pan camera view left (port) or right (starboard) |
+| **Click Radar Blip / Compass** | Fast-travel to archipelago island or snap heading true North |
 | **Bottom Voyage Scrubber** | Scrub immediately to any percentage ($0\% - 100\%$) of the journey |
-| **`Esc` Key** | Dismiss any active modal or diagnostic drawer |
+| **`Esc` Key** | Dismiss any active modal, spyglass viewfinder, or diagnostic drawer |
 
 ---
 
-## 🧪 Built-In 16-Point QA Diagnostic Suite
+## 🧪 Built-In 18-Point QA Diagnostic Suite
 
-Clicking **"Run QA Suite"** executes an automated 16-point integration test suite (`runPortfolioTestSuite()`) directly inside the browser:
+Clicking **"Run QA Suite"** executes an automated 18-point integration test suite (`runPortfolioTestSuite()`) directly inside the browser:
 
 1. **WebGL 2.0 / 1.0 Context Active** — Verifies valid rendering context initialization.
 2. **Three.js Scene Graph Mounted** — Confirms scene children are populated.
@@ -157,14 +176,16 @@ Clicking **"Run QA Suite"** executes an automated 16-point integration test suit
 6. **Ship Group Buoyant on Deck** — Asserts vessel draft remains above water level.
 7. **Rotatable Ship's Wheel Assembled** — Checks wheel rim, hub, and 8 spoke assemblies.
 8. **Ocean Bow Spray Particles Mounted** — Asserts active bow foam particle emitter.
-9. **Twinkling Starfield Active** — Confirms $>1,000$ skybox star particles.
-10. **Dynamic Caribbean Ocean Mesh Subdivided** — Confirms $>10,000$ wave vertices.
-11. **Island 1: Cloud Genesis Initialized** — Validates server monoliths and landmass.
-12. **Island 2: InfoSec Bastion & Shield** — Confirms wireframe geodesic shield reference.
-13. **Island 3: Gen AI Neural Core** — Verifies levitating amethyst core mesh.
-14. **Island 4: Harbor Lighthouse Beacon** — Checks rotating beacon light cone.
-15. **Weather Presets (Noon, Sunset, Night)** — Validates atmospheric state maps.
-16. **Credential Integrity (BCA 87.30% & MCA Gen AI)** — Asserts accurate resume badges.
+9. **Stern Wake Foam Particles Active** — Confirms trailing wake foam particle system.
+10. **Twinkling Starfield Active** — Confirms $>1,000$ skybox star particles.
+11. **Dynamic Caribbean Ocean Mesh Subdivided** — Confirms $>10,000$ wave vertices.
+12. **Flocking Seagulls Life System** — Confirms 6 procedural low-poly birds with animated flapping wings.
+13. **Interactive Naval Carronades Mounted** — Validates port and starboard deck cannon groups.
+14. **Island 1: Cloud Genesis Initialized** — Validates server monoliths and landmass.
+15. **Island 2: InfoSec Bastion & Shield** — Confirms wireframe geodesic shield reference.
+16. **Island 3: Gen AI Neural Core** — Verifies levitating amethyst core mesh.
+17. **Island 4: Harbor Lighthouse Beacon** — Checks rotating beacon light cone.
+18. **Credential Integrity (BCA 87.30% & MCA Gen AI)** — Asserts accurate resume badges.
 
 ---
 
