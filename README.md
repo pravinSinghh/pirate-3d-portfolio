@@ -57,15 +57,17 @@ To achieve high visual appeal without bloated assets, animations across this por
   - **Sunset:** Warm terracotta orange (`#f97316`), deep orange fog (`#c2410c`), golden exposure `1.25`.
   - **Night:** Deep void indigo (`#030712`), volumetric midnight fog (`#020617`), moonlight tint (`#93c5fd`), exposure `0.85`.
 
-### 2. Multi-Layered Particle Systems
-* **Ocean Bow Spray Emitter:** Dynamic 200-particle emitter mounted to the clipper bow prow ejecting foaming spray upward and backward as the galleon cuts through the waves, recycling particle lifecycles based on vessel velocity.
-* **Stern Wake Foam Trail:** 160 trailing foam particles issuing from the stern rudder, gently drifting outward and dispersing across the sea surface.
-* **Carronade Muzzle Smoke:** 80 expanding volumetric smoke particles bursting sideways from active carronades upon firing, with randomized velocity and gradual alpha fade.
-* **Twinkling Starfield:** 1,200 particle stars populating the night skybox dome, smoothly fading to full luminance during the Night atmospheric cycle.
-* **Bioluminescent Ocean Plankton:** 300 additive cyan particles drifting near the water surface, creating a glowing ethereal wake at night.
+### 2. Anti-Aliased Soft Circular Particle Engine (Zero Square Pixels)
+* **Procedural Radial Alpha Sprites:** All particle systems are powered by procedural 2D canvas radial alpha textures with soft exponential falloffs and `depthWrite: false`, completely eliminating square pixel quads.
+* **Ocean Bow Spray Emitter:** Dynamic 200-particle emitter at the clipper prow ejecting soft circular foaming droplets upward and backward as the galleon cuts through the waves.
+* **Stern Wake Foam Trail:** 160 trailing circular foam discs issuing from the stern rudder, gently drifting outward and dispersing across the sea surface.
+* **Carronade Muzzle Smoke:** 80 expanding volumetric Gaussian smoke puffs bursting sideways from active carronades upon firing, with randomized velocity and gradual alpha fade.
+* **Twinkling Starfield:** 1,200 luminous circular star particles populating the night skybox dome with soft halos, smoothly fading to full luminance during the Night atmospheric cycle.
+* **Bioluminescent Ocean Plankton:** 300 additive circular cyan orbs drifting near the water surface, creating a glowing ethereal wake at night.
 
 ### 3. Tactile Nautical HUD Micro-Interactions
-* **Live Interactive Brass Compass:** An antique compass dial mounted in the top-left HUD dynamically rotates in real time based on `(shipGroup.rotation.y + cameraYaw)`, always pointing true magnetic North with digital degree/cardinal readout.
+* **Multi-Perspective Camera View Button:** HUD toggle button switching between **Helm View**, **Third-Person Chase**, and **Aerial Drone** perspectives with instant hotkeys `[C]` and `[V]`.
+* **Live Interactive Brass Compass:** Antique compass dial mounted in the top-left HUD dynamically rotating in real time based on `(shipGroup.rotation.y + cameraYaw)`, always pointing true magnetic North with digital degree/cardinal readout.
 * **Tactical Sonar Radar Minimap:** Positioned in the bottom-left, featuring concentric range rings, a 360° phosphor beam sweep, and active clickable ping blips tracking all 4 milestone islands relative to the ship.
 * **Equalizer Soundwave Visualizer:** When ambient waves are toggled ON, a 5-bar responsive equalizer visualizer animates in rhythm with the wave frequency.
 * **Dynamic Knots Speedometer:** Responsive velocity readout (`13.5 - 18.2 KTS`) reflecting cruise and acceleration momentum.
@@ -78,27 +80,35 @@ To achieve high visual appeal without bloated assets, animations across this por
 
 ## 🌟 Core 3D & Interactive Features
 
-### 1. First-Person Maritime Helm & Galleon Quarterdeck
-* **Ship Architecture:** Tiered mahogany hull, tumblehome bulwarks, gold-leaf waterline strakes, clipper bow prow, bowsprit spar, raised poop deck with turned brass balusters, captain's sea-chart table, naval carronades, coiled ropes, cargo barrels, and sternpost lanterns.
-* **Dynamic Rigging & Wheel:** Master 8-spoke wooden wheel tilts dynamically with helm steering and swell roll, while the main mast pennant flag flutters in procedural wind.
+### 1. Formidable Dark Pirate Galleon Architecture & Helm
+* **Authentic Weathered Pirate Timbers:** Deep weathered dark oak (`#160d08`), aged teak deck planking (`#2c190f`), dark iron rub-rail strakes (`#18181b`), and burnished antique brass (`#c2851a`).
+* **Heavy Structural Detailing:** Heavy central keel beam running the length of the hull, sharp bow cutwater wedge, port and starboard forged iron pirate anchors with chain links and brass hawseholes, waist cargo grating hatch, and carved stern transom arches.
+* **Main Mast Rigging & Crow's Nest:** Main mast in dark oak equipped with a sturdy circular Crow's Nest lookout basket, horizontal yardarm cross-spar with furled linen sails tied in rope, and port/starboard rope shrouds (ratlines) running down to the deck bulwarks.
+* **Dynamic Rigging & Wheel:** Master 8-spoke mahogany wheel with brass hub and spokes tilting smoothly with helm steering, paired with an animated pennant flag fluttering in procedural wind.
 
-### 2. Captain's Spyglass / Telescope Mode
+### 2. Multi-Perspective Cinematic Camera Rigging
+* **Commanding Helm View (Default):** Eyepoint locked to the quarterdeck helm, with a subtle downward tilt (`-0.07 rad`) framing the mahogany wheel, compass binnacle, dark deck, carronades, and bow cutting forward into the sea.
+* **Third-Person Chase View:** Elevated behind the stern (`y: 7.5, z: 14.0`), looking along the entire vessel and wake trailing behind.
+* **Aerial Drone Vantage:** High bird's-eye perspective (`y: 16.0, z: 9.0`) looking down across the galleon and surrounding archipelago.
+* **Smooth Damped Tracking:** Camera world position smoothly lerps using exponential damping, locking securely to the vessel's coordinate frame without jitter.
+
+### 3. Captain's Spyglass / Telescope Mode
 * **Precision Long-Range Scouting:** Press `[T]` or click the Spyglass HUD button to smoothly lerp camera FOV from 60° down to 24° (2.5x optical magnification) using GSAP easing.
 * **Authentic Brass Reticle Viewfinder:** Displays dual-ring antique brass crosshairs, depth measurement ticks, nautical compass bearing, and a circular vignette mask with a slight camera glance towards nearby archipelago landmarks.
 
-### 3. Interactive Naval Carronades (Deck Cannons)
+### 4. Interactive Naval Carronades (Deck Cannons)
 * **Direct Raycasting & Hotkey Firing:** Aim and click directly on the port or starboard deck cannons, press `[F]`, or click the HUD **"Fire Cannon"** button.
-* **Recoil, Smoke & Audio VFX:** Triggers realistic carriage recoil along the deck via GSAP, bursts volumetric muzzle smoke outward, and synthesizes a procedural Web Audio acoustic cannon blast.
+* **Recoil, Smoke & Audio VFX:** Triggers realistic carriage recoil along the deck via GSAP, bursts volumetric circular muzzle smoke outward, and synthesizes a procedural Web Audio acoustic cannon blast.
 
-### 4. Flocking Seagulls Wildlife System
+### 5. Flocking Seagulls Wildlife System
 * **Procedural Low-Poly Avian Flock:** 6 procedural low-poly seagulls soaring and circling above the milestone archipelago islands, featuring animated wing-flapping kinematics synchronized with scene delta time.
 
-### 5. In-World 3D Holographic Monoliths & Raycasting
+### 6. In-World 3D Holographic Monoliths & Raycasting
 * **Procedural Canvas Textures:** $1024 \times 1024$ `THREE.CanvasTexture` maps rendered with cyber-scanlines, tech brackets, glowing gradient borders, and wrapped bullet points onto double-sided obsidian monoliths.
 * **Bilateral Raycasting:** Click directly on any 3D monolith in the viewport—or its screen-projected HUD pin—to sail smoothly to that landmark and inspect its dossier.
 * **Proximity Glance Engine:** Sailing within $260\text{ units}$ of a landmark triggers a HUD alert and smoothly glances the helm camera toward the monument.
 
-### 6. Procedural Web Audio Soundscapes (Zero External Audio Files)
+### 7. Procedural Web Audio Soundscapes (Zero External Audio Files)
 * **Ocean Wave Surf Synthesizer:** Realistic ambient surf synthesized via Web Audio Pink Noise buffer routed through a biquad lowpass filter ($380\text{ Hz}$) modulated by a $0.22\text{ Hz}$ LFO.
 * **Naval Cannon Blast Synthesizer:** Multi-layered explosive rumble using low-frequency decaying noise bursts with rapid frequency modulation.
 * **Harmonic Ship's Bell:** Additive 3-tone acoustic bell chime ($587\text{ Hz}, 1174\text{ Hz}, 1762\text{ Hz}$) triggering upon archipelago waypoint arrivals or manual chime.
@@ -154,6 +164,7 @@ $$y(u, w, t) = y_0 + 0.7 \sin(0.035u + 1.8t) + 0.8 \cos(0.025w + 1.3t) + 0.5 \si
 | **Click & Drag / Touch Swipe** | Rotate helm camera yaw/pitch and steer the ship's wheel |
 | **Click on 3D Monolith / HUD Tag** | Sail directly to that island and open its detailed logbook modal |
 | **Click on Deck Cannons** | Raycast & fire the port/starboard carronades with recoil & smoke VFX |
+| **`C` / `V` Keys / Camera Button** | Toggle Camera View Perspective (Helm 1st-Person / Chase 3rd-Person / Aerial Drone) |
 | **`T` Key / Spyglass Button** | Toggle Captain's Spyglass 2.5x optical zoom viewfinder (`camera.fov: 60° -> 24°`) |
 | **`F` Key / "Fire Cannon" Button** | Fire port/starboard naval carronades with acoustic blast & muzzle smoke |
 | **`W` / `S` or `↑` / `↓` Keys** | Step forward or backward along voyage spline |
